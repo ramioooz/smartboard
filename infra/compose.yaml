@@ -70,7 +70,7 @@ services:
     volumes:
       - smartboard-miniodata:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -126,7 +126,7 @@ services:
     ports:
       - "4010:4010"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4010/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4010/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -152,7 +152,7 @@ services:
     ports:
       - "4020:4020"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4020/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4020/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -189,7 +189,7 @@ services:
     ports:
       - "4030:4030"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4030/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4030/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -215,7 +215,7 @@ services:
     ports:
       - "4040:4040"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4040/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4040/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -241,7 +241,7 @@ services:
     ports:
       - "4050:4050"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4050/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4050/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -268,7 +268,7 @@ services:
     ports:
       - "4060:4060"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4060/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4060/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -306,7 +306,7 @@ services:
     ports:
       - "4070:4070"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4070/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4070/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -342,16 +342,16 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
       DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
       # Service discovery — docker compose DNS
-      AUTH_BASE_URL: http://smartboard-svc-auth:4010
-      TENANTS_BASE_URL: http://smartboard-svc-tenants:4020
-      DATASETS_BASE_URL: http://smartboard-svc-datasets:4030
-      ANALYTICS_BASE_URL: http://smartboard-svc-analytics:4040
-      DASHBOARDS_BASE_URL: http://smartboard-svc-dashboards:4050
-      REALTIME_BASE_URL: http://smartboard-svc-realtime:4060
+      AUTH_SERVICE_URL: http://smartboard-svc-auth:4010
+      TENANTS_SERVICE_URL: http://smartboard-svc-tenants:4020
+      DATASETS_SERVICE_URL: http://smartboard-svc-datasets:4030
+      ANALYTICS_SERVICE_URL: http://smartboard-svc-analytics:4040
+      DASHBOARDS_SERVICE_URL: http://smartboard-svc-dashboards:4050
+      REALTIME_SERVICE_URL: http://smartboard-svc-realtime:4060
     ports:
       - "4000:4000"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -372,12 +372,13 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
-      NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:4000}
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://127.0.0.1:4000}
       NEXT_PUBLIC_DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
     ports:
       - "3000:3000"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
       interval: 15s
       timeout: 5s
       retries: 5
