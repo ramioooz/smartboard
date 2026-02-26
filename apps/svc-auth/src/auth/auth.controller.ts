@@ -1,6 +1,6 @@
-import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, Post } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
-import { DevLoginSchema } from '@smartboard/shared';
+import { DevLoginSchema, UserPreferencesSchema } from '@smartboard/shared';
 import type { User } from '@prisma/client';
 import type { AuthService } from './auth.service';
 
@@ -23,6 +23,22 @@ export class AuthController {
       throw new BadRequestException('Missing x-user-id header');
     }
     const user = await this.authService.me(userId);
+    return { ok: true, data: user };
+  }
+
+  @Patch('me/preferences')
+  async updatePreferences(
+    @Headers('x-user-id') userId: string,
+    @Body() body: unknown,
+  ): Promise<ApiOk<User>> {
+    if (!userId) {
+      throw new BadRequestException('Missing x-user-id header');
+    }
+    const parsed = UserPreferencesSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.flatten().fieldErrors);
+    }
+    const user = await this.authService.updatePreferences(userId, parsed.data);
     return { ok: true, data: user };
   }
 }
