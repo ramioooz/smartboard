@@ -4,6 +4,7 @@ import { DatasetsModule } from './datasets/datasets.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { RedisModule } from './redis/redis.module';
     }),
     PrismaModule,
     RedisModule,
+    MinioModule,
     HealthModule,
     DatasetsModule,
   ],

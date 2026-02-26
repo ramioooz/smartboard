@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import type { DatasetsClient } from '../../services/clients/datasets.client';
 
@@ -12,7 +12,14 @@ export class DatasetsController {
   }
 
   @Get()
-  async list(): Promise<ApiOk<unknown>> {
-    return this.datasetsClient.get<ApiOk<unknown>>('/datasets');
+  async list(@Query() query: Record<string, string>): Promise<ApiOk<unknown>> {
+    const qs = new URLSearchParams(query).toString();
+    const path = qs ? `/datasets?${qs}` : '/datasets';
+    return this.datasetsClient.get<ApiOk<unknown>>(path);
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<ApiOk<unknown>> {
+    return this.datasetsClient.get<ApiOk<unknown>>(`/datasets/${id}`);
   }
 }

@@ -7,9 +7,15 @@ import { JOB_NAMES } from '@smartboard/shared';
 import type { DatasetIngestPayload, PagedResult } from '@smartboard/shared';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { RedisService } from '../redis/redis.service';
+import type { MinioService } from '../minio/minio.service';
 
 type CreateDatasetDto = ReturnType<typeof CreateDatasetSchema.parse>;
 type PaginationDto = ReturnType<typeof PaginationSchema.parse>;
+
+export interface CreateDatasetResult {
+  dataset: Dataset;
+  uploadUrl: string;
+}
 
 @Injectable()
 export class DatasetsService implements OnModuleInit, OnModuleDestroy {
@@ -18,6 +24,7 @@ export class DatasetsService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
+    private readonly minio: MinioService,
   ) {}
 
   onModuleInit(): void {
@@ -30,7 +37,8 @@ export class DatasetsService implements OnModuleInit, OnModuleDestroy {
     await this.queue.close();
   }
 
-  async create(dto: CreateDatasetDto, tenantId: string): Promise<Dataset> {
+  async create(dto: CreateDatasetDto, tenantId: string): Promise<CreateDatasetResult> {
+    // Create the dataset record first to get the id
     const dataset = await this.prisma.dataset.create({
       data: {
         tenantId,
@@ -41,14 +49,27 @@ export class DatasetsService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    await this.queue.add(JOB_NAMES.DATASET_INGEST, {
-      tenantId,
-      datasetId: dataset.id,
-      s3Key: '',
-      fileType: dto.fileType,
-    } satisfies DatasetIngestPayload);
+    // Build a deterministic S3 key
+    const ext = dto.fileType === 'json' ? 'json' : 'csv';
+    const s3Key = `tenants/${tenantId}/datasets/${dataset.id}/data.${ext}`;
 
-    return dataset;
+    // Store the s3Key so the worker knows where to read from
+    const updated = await this.prisma.dataset.update({
+      where: { id: dataset.id },
+      data: { s3Key, status: 'uploaded' },
+    });
+
+    // Generate a presigned PUT URL — client uploads directly to MinIO
+    const uploadUrl = await this.minio.presignedPutUrl(s3Key);
+
+    // Queue the ingest job with a 5 s delay to let the client finish uploading
+    await this.queue.add(
+      JOB_NAMES.DATASET_INGEST,
+      { tenantId, datasetId: dataset.id, s3Key, fileType: dto.fileType } satisfies DatasetIngestPayload,
+      { delay: 5_000 },
+    );
+
+    return { dataset: updated, uploadUrl };
   }
 
   async listForTenant(tenantId: string, pagination: PaginationDto): Promise<PagedResult<Dataset>> {
@@ -66,5 +87,9 @@ export class DatasetsService implements OnModuleInit, OnModuleDestroy {
     ]);
 
     return { items, total, page, limit, hasMore: skip + items.length < total };
+  }
+
+  async findOne(id: string, tenantId: string): Promise<Dataset | null> {
+    return this.prisma.dataset.findFirst({ where: { id, tenantId } });
   }
 }
