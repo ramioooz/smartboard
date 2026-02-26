@@ -11,8 +11,8 @@ coverage
 
 # Environment
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
 
 # OS
 .DS_Store
