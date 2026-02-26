@@ -1,13 +1,16 @@
 ##############################################################################
 # Smartboard — Docker Compose (Local Dev)
-# Phase 1 scaffold — full service wiring added in Phase 2.
-# Service naming convention: smartboard-* (matches ECS task naming)
+# Run: docker compose -f infra/compose.yaml up
+# All service names use smartboard-* convention (matches ECS task naming).
+# Build context for all app services is the monorepo root (../),
+# so Dockerfiles can access the full workspace during multi-stage builds.
 ##############################################################################
 
 name: smartboard
 
 services:
-  # ── Infrastructure ──────────────────────────────────────────────────────────
+  # ── Infrastructure ───────────────────────────────────────────────────────────
+
   smartboard-postgres:
     image: postgres:16-alpine
     container_name: smartboard-postgres
@@ -22,10 +25,11 @@ services:
       - smartboard-pgdata:/var/lib/postgresql/data
       - ./scripts/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartboard}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartboard} -d ${POSTGRES_DB:-smartboard}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - smartboard-net
 
@@ -33,7 +37,12 @@ services:
     image: redis:7-alpine
     container_name: smartboard-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_dev}
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-redis_dev}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -43,6 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
     networks:
       - smartboard-net
 
@@ -60,36 +70,332 @@ services:
     volumes:
       - smartboard-miniodata:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
     networks:
       - smartboard-net
 
+  # MinIO bucket initialiser — runs once to create the datasets bucket
+  smartboard-minio-init:
+    image: minio/mc:latest
+    container_name: smartboard-minio-init
+    depends_on:
+      smartboard-minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://smartboard-minio:9000 ${MINIO_ROOT_USER:-smartboard_minio} ${MINIO_ROOT_PASSWORD:-minio_dev_secret};
+        mc mb --ignore-existing local/${MINIO_BUCKET_DATASETS:-smartboard-datasets};
+        mc anonymous set none local/${MINIO_BUCKET_DATASETS:-smartboard-datasets};
+        echo 'MinIO bucket initialised.';
+      "
+    networks:
+      - smartboard-net
+    restart: "no"
+
   # ── Backend Services ─────────────────────────────────────────────────────────
-  # Full Docker build wiring added in Phase 2.
-  # Placeholders below show the intended structure.
 
-  # smartboard-gateway:
-  #   build: { context: .., dockerfile: apps/gateway/Dockerfile }
-  #   ports: ["4000:4000"]
-  #   depends_on: [smartboard-postgres, smartboard-redis]
-  #   networks: [smartboard-net]
+  smartboard-svc-auth:
+    build:
+      context: ../
+      dockerfile: apps/svc-auth/Dockerfile
+    image: smartboard-svc-auth:local
+    container_name: smartboard-svc-auth
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4010
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=auth
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-}
+      MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-http://localhost:4000/auth/microsoft/callback}
+      DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
+      DEV_DEFAULT_EMAIL: ${DEV_DEFAULT_EMAIL:-dev@local}
+    ports:
+      - "4010:4010"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4010/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
 
-  # smartboard-svc-auth:
-  #   build: { context: .., dockerfile: apps/svc-auth/Dockerfile }
-  #   ports: ["4010:4010"]
-  #   depends_on: [smartboard-postgres]
-  #   networks: [smartboard-net]
+  smartboard-svc-tenants:
+    build:
+      context: ../
+      dockerfile: apps/svc-tenants/Dockerfile
+    image: smartboard-svc-tenants:local
+    container_name: smartboard-svc-tenants
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4020
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=tenants
+    ports:
+      - "4020:4020"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4020/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
 
-  # ... (all svc-* wired in Phase 2)
+  smartboard-svc-datasets:
+    build:
+      context: ../
+      dockerfile: apps/svc-datasets/Dockerfile
+    image: smartboard-svc-datasets:local
+    container_name: smartboard-svc-datasets
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+      smartboard-redis:
+        condition: service_healthy
+      smartboard-minio-init:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4030
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@smartboard-redis:6379
+      MINIO_ENDPOINT: smartboard-minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+      MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
+    ports:
+      - "4030:4030"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4030/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
 
+  smartboard-svc-analytics:
+    build:
+      context: ../
+      dockerfile: apps/svc-analytics/Dockerfile
+    image: smartboard-svc-analytics:local
+    container_name: smartboard-svc-analytics
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4040
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
+    ports:
+      - "4040:4040"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4040/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+  smartboard-svc-dashboards:
+    build:
+      context: ../
+      dockerfile: apps/svc-dashboards/Dockerfile
+    image: smartboard-svc-dashboards:local
+    container_name: smartboard-svc-dashboards
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4050
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=dashboards
+    ports:
+      - "4050:4050"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4050/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+  smartboard-svc-realtime:
+    build:
+      context: ../
+      dockerfile: apps/svc-realtime/Dockerfile
+    image: smartboard-svc-realtime:local
+    container_name: smartboard-svc-realtime
+    restart: unless-stopped
+    depends_on:
+      smartboard-redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4060
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@smartboard-redis:6379
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
+    ports:
+      - "4060:4060"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4060/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+  smartboard-worker:
+    build:
+      context: ../
+      dockerfile: apps/worker/Dockerfile
+    image: smartboard-worker:local
+    container_name: smartboard-worker
+    restart: unless-stopped
+    depends_on:
+      smartboard-postgres:
+        condition: service_healthy
+      smartboard-redis:
+        condition: service_healthy
+      smartboard-minio-init:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4070
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
+      DATABASE_URL_DATASETS: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@smartboard-redis:6379
+      MINIO_ENDPOINT: smartboard-minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+      MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
+    ports:
+      - "4070:4070"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4070/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+  smartboard-gateway:
+    build:
+      context: ../
+      dockerfile: apps/gateway/Dockerfile
+    image: smartboard-gateway:local
+    container_name: smartboard-gateway
+    restart: unless-stopped
+    depends_on:
+      smartboard-svc-auth:
+        condition: service_healthy
+      smartboard-svc-tenants:
+        condition: service_healthy
+      smartboard-svc-datasets:
+        condition: service_healthy
+      smartboard-svc-analytics:
+        condition: service_healthy
+      smartboard-svc-dashboards:
+        condition: service_healthy
+      smartboard-svc-realtime:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
+      DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
+      # Service discovery — docker compose DNS
+      AUTH_BASE_URL: http://smartboard-svc-auth:4010
+      TENANTS_BASE_URL: http://smartboard-svc-tenants:4020
+      DATASETS_BASE_URL: http://smartboard-svc-datasets:4030
+      ANALYTICS_BASE_URL: http://smartboard-svc-analytics:4040
+      DASHBOARDS_BASE_URL: http://smartboard-svc-dashboards:4050
+      REALTIME_BASE_URL: http://smartboard-svc-realtime:4060
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+  smartboard-web:
+    build:
+      context: ../
+      dockerfile: apps/web/Dockerfile
+    image: smartboard-web:local
+    container_name: smartboard-web
+    restart: unless-stopped
+    depends_on:
+      smartboard-gateway:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:4000}
+      NEXT_PUBLIC_DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartboard-net
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
   smartboard-pgdata:
+    name: smartboard-pgdata
   smartboard-redisdata:
+    name: smartboard-redisdata
   smartboard-miniodata:
+    name: smartboard-miniodata
 
+# ── Networks ──────────────────────────────────────────────────────────────────
 networks:
   smartboard-net:
+    name: smartboard-net
     driver: bridge
