@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma clients
+        run: pnpm turbo run db:generate --concurrency=1
+
       - name: Typecheck
         run: pnpm turbo run typecheck
 
