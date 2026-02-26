@@ -8,7 +8,6 @@ on:
 
 env:
   NODE_VERSION: "20"
-  PNPM_VERSION: "10"
 
 jobs:
   ci:
@@ -24,8 +23,7 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+        # No version specified — reads packageManager field from package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
