@@ -1,0 +1,19 @@
+# Local terraform state
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfstate.d/
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Sensitive var files
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Terraform working directory
+.terraform/
+
+# Lock file — commit this when working in a team
+# .terraform.lock.hcl

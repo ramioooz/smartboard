@@ -69,23 +69,56 @@ sequenceDiagram
     participant RT as svc-realtime
     participant Redis
 
-    Web->>GW: POST /datasets/:id/upload-url
-    GW->>DS: GET presigned URL
-    DS-->>GW: { uploadUrl }
-    GW-->>Web: { uploadUrl }
-    Web->>MinIO: PUT CSV (direct, presigned)
-    Web->>GW: POST /datasets/:id/ingest
-    GW->>DS: trigger ingest
-    DS->>Redis: BullMQ enqueue dataset.ingest { tenantId, datasetId }
-    DS-->>GW: { status: processing }
-    W->>Redis: consume dataset.ingest
-    W->>MinIO: download CSV
-    W->>AN: write aggregates (analytics schema)
-    W->>DS: update status → ready
-    W->>Redis: publish dataset.ready event
-    RT->>Redis: subscribe dataset.ready
-    RT-->>Web: SSE push { event: dataset.ready, tenantId, datasetId }
-    Web->>Web: TanStack Query invalidate
+    Web->>GW: POST /api/datasets { name, fileType }
+    GW->>DS: POST /datasets
+    DS->>DS: create Dataset record (status=created)
+    DS->>DS: build s3Key, update record (status=uploaded)
+    DS->>MinIO: ensure bucket exists
+    DS-->>GW: { dataset, uploadUrl (presigned PUT) }
+    GW-->>Web: { dataset, uploadUrl }
+    Web->>MinIO: PUT file (direct, presigned, 15 min TTL)
+    Note over DS,W: 5s delay — gives client time to finish upload
+    W->>Redis: consume dataset.ingest job
+    W->>MinIO: stream file by s3Key
+    W->>W: parse CSV/JSON rows
+    W->>AN: INSERT INTO analytics.events (bulk)
+    W->>DS: UPDATE Dataset status=ready, rowCount=N
+    W->>Redis: PUBLISH dataset.ready { tenantId, datasetId, rowCount }
+    RT->>Redis: SUBSCRIBE dataset.ready / dataset.error
+    RT-->>Web: SSE push { event: dataset.ready, rowCount }
+    Web->>Web: React Query invalidates datasets + timeseries cache
+```
+
+---
+
+## Dataset File Format
+
+### CSV
+
+First row must be a header. Required columns: `metric`, `value`. Optional: `timestamp` (ISO 8601).
+
+```csv
+metric,value,timestamp
+revenue,1500.00,2024-01-15T09:00:00Z
+revenue,2100.50,2024-01-15T10:00:00Z
+sessions,342,2024-01-15T09:00:00Z
+sessions,418,2024-01-15T10:00:00Z
+```
+
+- Missing `timestamp` defaults to ingest time
+- Missing `metric` defaults to `"value"`
+- Rows with non-numeric `value` are silently skipped
+
+### JSON
+
+Array of objects with `metric`, `value`, and optional `timestamp`.
+
+```json
+[
+  { "metric": "revenue", "value": 1500.00, "timestamp": "2024-01-15T09:00:00Z" },
+  { "metric": "revenue", "value": 2100.50, "timestamp": "2024-01-15T10:00:00Z" },
+  { "metric": "sessions", "value": 342, "timestamp": "2024-01-15T09:00:00Z" }
+]
 ```
 
 ---
