@@ -165,9 +165,12 @@ http://smartboard-svc-realtime:4060
 The Gateway reads these from env vars:
 
 ```
-AUTH_BASE_URL=http://smartboard-svc-auth:4010
-TENANTS_BASE_URL=http://smartboard-svc-tenants:4020
-...
+AUTH_SERVICE_URL=http://smartboard-svc-auth:4010
+TENANTS_SERVICE_URL=http://smartboard-svc-tenants:4020
+DATASETS_SERVICE_URL=http://smartboard-svc-datasets:4030
+ANALYTICS_SERVICE_URL=http://smartboard-svc-analytics:4040
+DASHBOARDS_SERVICE_URL=http://smartboard-svc-dashboards:4050
+REALTIME_SERVICE_URL=http://smartboard-svc-realtime:4060
 ```
 
 ### AWS ECS (Production)
@@ -238,27 +241,55 @@ Routes that skip TenantGuard: `@TenantOptional()` — applied to `/me`, `/tenant
 - pnpm 9+
 - Docker + Docker Compose
 
-### Steps
+### Option A — Full Docker Compose (recommended)
+
+Run all services as containers, fully mirroring production:
 
 ```bash
 # 1. Clone
 git clone https://github.com/ramioooz/smartboard
 cd smartboard
 
+# 2. Copy env
+cp .env.example .env
+# Edit .env as needed (defaults work out of the box)
+
+# 3. Build and start all 12 containers
+docker compose -f infra/compose.yaml --env-file .env up -d
+
+# 4. Wait for all services to be healthy, then push DB schemas
+#    (only needed on first run or after schema changes)
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=auth" \
+  pnpm --filter @smartboard/svc-auth exec prisma db push --skip-generate
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=tenants" \
+  pnpm --filter @smartboard/svc-tenants exec prisma db push --skip-generate
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=datasets" \
+  pnpm --filter @smartboard/svc-datasets exec prisma db push --skip-generate
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=analytics" \
+  pnpm --filter @smartboard/svc-analytics exec prisma db push --skip-generate
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=analytics" \
+  pnpm --filter @smartboard/worker exec prisma db push --skip-generate
+DATABASE_URL="postgresql://smartboard:smartboard_dev@localhost:5433/smartboard?schema=dashboards" \
+  pnpm --filter @smartboard/svc-dashboards exec prisma db push --skip-generate
+```
+
+> **Note:** `analytics` schema is shared by `svc-analytics` (events table) and `worker` (JobRecord table).
+> Run both pushes above — do **not** run them in isolation or one will drop the other's tables.
+
+### Option B — Hybrid (infra in Docker, services via pnpm dev)
+
+```bash
+# 1. Start only infrastructure containers
+docker compose -f infra/compose.yaml --env-file .env up -d \
+  smartboard-postgres smartboard-redis smartboard-minio smartboard-minio-init
+
 # 2. Install dependencies
 pnpm install
 
-# 3. Copy env
-cp .env.example .env
-# Edit .env as needed (defaults work for local docker compose)
-
-# 4. Start infrastructure
-docker compose -f infra/compose.yaml up -d smartboard-postgres smartboard-redis smartboard-minio
-
-# 5. Run DB migrations
+# 3. Run DB migrations
 pnpm db:migrate
 
-# 6. Dev (all apps via turbo)
+# 4. Dev (all apps via turbo)
 pnpm dev
 
 # OR run individual apps:

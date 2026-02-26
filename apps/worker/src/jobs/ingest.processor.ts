@@ -7,8 +7,8 @@ import * as Minio from 'minio';
 import type { DatasetIngestPayload } from '@smartboard/shared';
 import { JOB_NAMES, EVENT_NAMES } from '@smartboard/shared';
 import type { DatasetReadyEvent, DatasetErrorEvent } from '@smartboard/shared';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { RedisService } from '../redis/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 interface EventRow {
   tenantId: string;

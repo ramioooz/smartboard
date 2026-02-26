@@ -3,6 +3,8 @@ import { z } from 'zod';
 // ─── Common ─────────────────────────────────────────────────────────────────
 
 export const UuidSchema = z.string().uuid();
+// Opaque ID schema — accepts cuid2, UUID, or any non-empty alphanumeric ID
+export const IdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/);
 export const PaginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(200).default(50),
@@ -90,7 +92,7 @@ export const CreateDashboardSchema = z.object({
 // ─── Analytics ───────────────────────────────────────────────────────────────
 
 export const TimeseriesQuerySchema = z.object({
-  datasetId: UuidSchema,
+  datasetId: IdSchema,
   metric: z.string().min(1),
   from: z.coerce.date(),
   to: z.coerce.date(),

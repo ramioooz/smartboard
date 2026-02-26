@@ -1,5 +1,5 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 
 const REALTIME_SERVICE_URL =
   process.env['REALTIME_SERVICE_URL'] ?? 'http://localhost:4060';

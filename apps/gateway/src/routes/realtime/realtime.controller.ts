@@ -1,6 +1,6 @@
 import { Controller, Get, Headers, Res, BadRequestException } from '@nestjs/common';
-import type { ServerResponse } from 'node:http';
-import type { RequestContextService } from '../../context/request-context.service';
+import type { FastifyReply } from 'fastify';
+import { RequestContextService } from '../../context/request-context.service';
 
 const REALTIME_SERVICE_URL =
   process.env['REALTIME_SERVICE_URL'] ?? 'http://localhost:4060';
@@ -16,7 +16,7 @@ export class RealtimeController {
   @Get('stream')
   async stream(
     @Headers('x-tenant-id') tenantId: string,
-    @Res() res: ServerResponse,
+    @Res() reply: FastifyReply,
   ): Promise<void> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
 
@@ -30,30 +30,31 @@ export class RealtimeController {
 
     const upstream = await fetch(`${REALTIME_SERVICE_URL}/events/stream`, { headers });
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.writeHead(200);
+    const raw = reply.raw;
+    raw.setHeader('Content-Type', 'text/event-stream');
+    raw.setHeader('Cache-Control', 'no-cache');
+    raw.setHeader('Connection', 'keep-alive');
+    raw.setHeader('Access-Control-Allow-Origin', '*');
+    raw.writeHead(200);
 
     if (upstream.body) {
       const reader = upstream.body.getReader();
       const pump = async (): Promise<void> => {
         while (true) {
           const { done, value } = await reader.read();
-          if (done || res.writableEnded) break;
-          res.write(Buffer.from(value));
+          if (done || raw.writableEnded) break;
+          raw.write(Buffer.from(value));
         }
-        if (!res.writableEnded) res.end();
+        if (!raw.writableEnded) raw.end();
       };
 
-      res.on('close', () => {
+      raw.on('close', () => {
         reader.cancel().catch(() => undefined);
       });
 
       await pump();
     } else {
-      res.end();
+      raw.end();
     }
   }
 }

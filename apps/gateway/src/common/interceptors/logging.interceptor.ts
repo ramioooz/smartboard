@@ -1,11 +1,12 @@
 import type { NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
-import type { PinoLogger } from 'nestjs-pino';
+import { PinoLogger } from 'nestjs-pino';
 import { InjectPinoLogger } from 'nestjs-pino';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { RequestContextService } from '../../context/request-context.service';
+import type { IncomingMessage } from 'node:http';
+import type { FastifyReply } from 'fastify';
+import { RequestContextService } from '../../context/request-context.service';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -22,7 +23,7 @@ export class LoggingInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          const res = context.switchToHttp().getResponse<ServerResponse>();
+          const res = context.switchToHttp().getResponse<FastifyReply>();
           const ctx = this.rcs.getOrUndefined();
           this.logger.info(
             {

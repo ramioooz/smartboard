@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # ── Stage 1: deps ──────────────────────────────────────────────────────────────
 FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@10.28.0
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -10,11 +10,12 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/ui/package.json ./packages/ui/
 COPY apps/web/package.json ./apps/web/
 
-RUN pnpm install --frozen-lockfile --filter @smartboard/web... --ignore-scripts
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --filter @smartboard/web... --ignore-scripts
 
 # ── Stage 2: builder ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@10.28.0
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -22,6 +23,8 @@ COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm --filter @smartboard/shared run build
+RUN pnpm --filter @smartboard/ui run build
 RUN pnpm --filter @smartboard/web run build
 
 # ── Stage 3: runner ────────────────────────────────────────────────────────────
