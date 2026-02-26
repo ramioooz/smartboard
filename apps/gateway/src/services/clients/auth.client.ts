@@ -37,4 +37,15 @@ export class AuthClient {
     });
     return res.json() as Promise<T>;
   }
+
+  async patch<T>(path: string, data: unknown): Promise<T> {
+    const res = await fetch(`${AUTH_SERVICE_URL}${path}`, {
+      method: 'PATCH',
+      headers: this.buildHeaders(),
+      body: JSON.stringify(data),
+    }).catch(() => {
+      throw new ServiceUnavailableException('svc-auth is unreachable');
+    });
+    return res.json() as Promise<T>;
+  }
 }

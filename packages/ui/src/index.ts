@@ -1,7 +1,7 @@
-/**
- * @smartboard/ui
- * Shared UI primitives. Full components will be added in Phase 5.
- * shadcn/ui components will live in apps/web/src/components/ui/.
- */
+export { Button } from './button';
+export type { ButtonProps } from './button';
 
-export {}; // placeholder — populated in Phase 5
+export { Card, CardHeader, CardContent, CardFooter } from './card';
+
+export { Badge } from './badge';
+export type { BadgeProps } from './badge';

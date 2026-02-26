@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import type { AuthClient } from '../../services/clients/auth.client';
 
@@ -15,5 +15,10 @@ export class AuthController {
   @Get('me')
   async me(): Promise<ApiOk<unknown>> {
     return this.authClient.get<ApiOk<unknown>>('/auth/me');
+  }
+
+  @Patch('me/preferences')
+  async updatePreferences(@Body() body: unknown): Promise<ApiOk<unknown>> {
+    return this.authClient.patch<ApiOk<unknown>>('/auth/me/preferences', body);
   }
 }
