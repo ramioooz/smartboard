@@ -1,14 +1,25 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  output          = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["analytics"]
 }
 
-// Placeholder model — real schema migrations come in a later phase
 model Event {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  tenantId   String
+  datasetId  String
+  metric     String
+  value      Float
+  timestamp  DateTime
+  properties Json     @default("{}")
+
+  @@index([tenantId, datasetId, metric, timestamp])
+  @@map("events")
+  @@schema("analytics")
 }

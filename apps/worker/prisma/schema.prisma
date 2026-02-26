@@ -1,14 +1,24 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  output          = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["analytics"]
 }
 
-// Placeholder model — real schema migrations come in a later phase
-model Job {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+model JobRecord {
+  id         String    @id @default(cuid())
+  tenantId   String
+  datasetId  String
+  status     String    @default("pending")
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([datasetId])
+  @@schema("analytics")
 }
