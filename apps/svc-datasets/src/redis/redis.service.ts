@@ -9,7 +9,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     this.client = new Redis(process.env['REDIS_URL'] ?? 'redis://localhost:6379', {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: null,
       lazyConnect: true,
     });
 

@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Param, P
 import type { ApiOk, PagedResult } from '@smartboard/shared';
 import { CreateDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
 import type { Dashboard } from '@prisma/client';
-import type { DashboardsService } from './dashboards.service';
+import { DashboardsService } from './dashboards.service';
 
 @Controller('dashboards')
 export class DashboardsController {

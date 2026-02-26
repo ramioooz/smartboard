@@ -5,7 +5,7 @@
   "description": "Smartboard svc-analytics service",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+    "dev": "ts-node-dev --respawn src/main.ts",
     "start": "node dist/main.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
@@ -17,21 +17,23 @@
     "@nestjs/common": "^10.4.0",
     "@nestjs/core": "^10.4.0",
     "@nestjs/platform-fastify": "^10.4.0",
-    "@smartboard/shared": "workspace:*",
-    "pino": "^9.3.0",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
     "@nestjs/terminus": "^10.2.3",
-    "pino-http": "^10.2.0",
+    "@prisma/client": "^5.16.0",
+    "@smartboard/shared": "workspace:*",
+    "dotenv": "^17.3.1",
     "nestjs-pino": "^4.1.0",
-    "@prisma/client": "^5.16.0"
+    "pino": "^9.3.0",
+    "pino-http": "^10.2.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@smartboard/config": "workspace:*",
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.14.0",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.0",
+    "pino-pretty": "^13.1.3",
     "prisma": "^5.16.0",
-    "@types/jest": "^29.5.0"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.5.0"
   }
 }

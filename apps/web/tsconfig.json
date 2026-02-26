@@ -1,5 +1,5 @@
 {
-  "extends": "@smartboard/config/tsconfig/nextjs",
+  "extends": "./node_modules/@smartboard/config/tsconfig.nextjs.json",
   "compilerOptions": {
     "plugins": [
       {
