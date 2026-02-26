@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Smartboard design tokens — exact specification, do NOT invent new colors.
+   Usage: bg-[var(--surface)] text-[var(--text)] border-[var(--border)]
+   ========================================================================== */
+
+:root {
+  --radius: 12px;
+  --transition: 160ms ease;
+}
+
+/* ── Light / Mint ─────────────────────────────────────────────────────────── */
+:root[data-theme="light"][data-scheme="mint"] {
+  --bg: #f6f9f7;
+  --surface: #ffffff;
+  --surface2: #eef4f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #16a34a;
+  --primaryFg: #ffffff;
+  --accent: #4ade80;
+  --ring: #22c55e;
+  --shadow: 0 10px 30px rgba(16, 185, 129, 0.08);
+}
+
+/* ── Light / Warm ─────────────────────────────────────────────────────────── */
+:root[data-theme="light"][data-scheme="warm"] {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --surface2: #f3efe7;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #f59e0b;
+  --primaryFg: #111827;
+  --accent: #fde68a;
+  --ring: #fbbf24;
+  --shadow: 0 10px 30px rgba(251, 191, 36, 0.12);
+}
+
+/* ── Dark / Neon ──────────────────────────────────────────────────────────── */
+:root[data-theme="dark"][data-scheme="neon"] {
+  --bg: #0b0b0c;
+  --surface: #111113;
+  --surface2: #18181b;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --border: #27272a;
+  --primary: #a3ff12;
+  --primaryFg: #020617;
+  --accent: #8b5cf6;
+  --ring: #84cc16;
+  --shadow: 0 0 40px rgba(163, 255, 18, 0.18);
+}
+
+/* ── Dark / Ember ─────────────────────────────────────────────────────────── */
+:root[data-theme="dark"][data-scheme="ember"] {
+  --bg: #0a0a0a;
+  --surface: #121212;
+  --surface2: #1c1c1c;
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --border: #27272a;
+  --primary: #f97316;
+  --primaryFg: #020617;
+  --accent: #fb923c;
+  --ring: #ea580c;
+  --shadow: 0 0 30px rgba(249, 115, 22, 0.18);
+}
+
+/* ── Fallback defaults (light/mint) ───────────────────────────────────────── */
+:root:not([data-theme]) {
+  --bg: #f6f9f7;
+  --surface: #ffffff;
+  --surface2: #eef4f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #16a34a;
+  --primaryFg: #ffffff;
+  --accent: #4ade80;
+  --ring: #22c55e;
+  --shadow: 0 10px 30px rgba(16, 185, 129, 0.08);
+}

@@ -1,0 +1,95 @@
+##############################################################################
+# Smartboard — Docker Compose (Local Dev)
+# Phase 1 scaffold — full service wiring added in Phase 2.
+# Service naming convention: smartboard-* (matches ECS task naming)
+##############################################################################
+
+name: smartboard
+
+services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+  smartboard-postgres:
+    image: postgres:16-alpine
+    container_name: smartboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smartboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartboard_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-smartboard}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - smartboard-pgdata:/var/lib/postgresql/data
+      - ./scripts/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartboard}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartboard-net
+
+  smartboard-redis:
+    image: redis:7-alpine
+    container_name: smartboard-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_dev}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - smartboard-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redis_dev}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartboard-net
+
+  smartboard-minio:
+    image: minio/minio:latest
+    container_name: smartboard-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - smartboard-miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartboard-net
+
+  # ── Backend Services ─────────────────────────────────────────────────────────
+  # Full Docker build wiring added in Phase 2.
+  # Placeholders below show the intended structure.
+
+  # smartboard-gateway:
+  #   build: { context: .., dockerfile: apps/gateway/Dockerfile }
+  #   ports: ["4000:4000"]
+  #   depends_on: [smartboard-postgres, smartboard-redis]
+  #   networks: [smartboard-net]
+
+  # smartboard-svc-auth:
+  #   build: { context: .., dockerfile: apps/svc-auth/Dockerfile }
+  #   ports: ["4010:4010"]
+  #   depends_on: [smartboard-postgres]
+  #   networks: [smartboard-net]
+
+  # ... (all svc-* wired in Phase 2)
+
+volumes:
+  smartboard-pgdata:
+  smartboard-redisdata:
+  smartboard-miniodata:
+
+networks:
+  smartboard-net:
+    driver: bridge
