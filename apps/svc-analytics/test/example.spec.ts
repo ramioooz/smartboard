@@ -3,7 +3,7 @@ import { TimeseriesQuerySchema } from '@smartboard/shared';
 describe('svc-analytics — schema validation', () => {
   describe('TimeseriesQuerySchema', () => {
     const base = {
-      datasetId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // valid UUID
+      datasetId: 'cm5abc123def456ghi789jkl0', // valid cuid2
       metric: 'revenue',
       from: '2024-01-01T00:00:00Z',
       to: '2024-01-02T00:00:00Z',
@@ -48,8 +48,8 @@ describe('svc-analytics — schema validation', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rejects non-UUID datasetId', () => {
-      const result = TimeseriesQuerySchema.safeParse({ ...base, datasetId: 'not-a-uuid' });
+    it('rejects invalid datasetId', () => {
+      const result = TimeseriesQuerySchema.safeParse({ ...base, datasetId: 'invalid id!' });
       expect(result.success).toBe(false);
     });
 
