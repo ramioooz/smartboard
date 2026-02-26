@@ -1,0 +1,19 @@
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import type { ApiOk } from '@smartboard/shared';
+import type { AuthClient } from '../../services/clients/auth.client';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authClient: AuthClient) {}
+
+  @Post('login')
+  @HttpCode(200)
+  async login(@Body() body: unknown): Promise<ApiOk<unknown>> {
+    return this.authClient.post<ApiOk<unknown>>('/auth/login', body);
+  }
+
+  @Get('me')
+  async me(): Promise<ApiOk<unknown>> {
+    return this.authClient.get<ApiOk<unknown>>('/auth/me');
+  }
+}
