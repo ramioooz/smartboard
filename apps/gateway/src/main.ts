@@ -16,6 +16,9 @@ async function bootstrap() {
   );
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
+  app.setGlobalPrefix('api', {
+    exclude: ['health/live', 'health/ready'],
+  });
   await app.listen(PORT, '0.0.0.0');
 }
 
