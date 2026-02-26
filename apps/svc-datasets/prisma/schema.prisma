@@ -1,14 +1,44 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  output          = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["datasets"]
 }
 
-// Placeholder model — real schema migrations come in a later phase
+enum DatasetStatus {
+  created
+  uploaded
+  processing
+  ready
+  error
+
+  @@schema("datasets")
+}
+
+enum FileType {
+  csv
+  json
+
+  @@schema("datasets")
+}
+
 model Dataset {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id          String        @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  fileType    FileType      @default(csv)
+  status      DatasetStatus @default(created)
+  rowCount    Int?
+  s3Key       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([tenantId])
+  @@schema("datasets")
 }
