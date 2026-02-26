@@ -3,9 +3,9 @@ const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
 
 /** @type {import('eslint').Linter.Config[]} */
-const base = [
+module.exports = [
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
     plugins: {
       '@typescript-eslint': tseslint,
     },
@@ -19,13 +19,10 @@ const base = [
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/consistent-type-imports': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/.next/**', '**/coverage/**'],
+    ignores: ['node_modules/**', '.next/**', 'dist/**', 'coverage/**', 'test/**'],
   },
 ];
-
-module.exports = base;

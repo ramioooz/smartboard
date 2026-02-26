@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
