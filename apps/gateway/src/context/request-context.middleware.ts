@@ -1,7 +1,7 @@
 import type { NestMiddleware } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { RequestContextService } from './request-context.service';
+import { RequestContextService } from './request-context.service';
 
 @Injectable()
 export class RequestContextMiddleware implements NestMiddleware {

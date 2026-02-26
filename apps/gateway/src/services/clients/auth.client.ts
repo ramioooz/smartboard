@@ -1,5 +1,5 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 
 const AUTH_SERVICE_URL =
   process.env['AUTH_SERVICE_URL'] ?? 'http://localhost:4010';

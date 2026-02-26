@@ -1,9 +1,11 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import type { Reflector } from '@nestjs/core';
-import { UuidSchema } from '@smartboard/shared';
+import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
+
+// Accepts cuid2, UUID, or any non-empty opaque ID — reject only empty/whitespace
+const TenantIdSchema = /^[a-zA-Z0-9_-]{1,64}$/;
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -24,8 +26,7 @@ export class TenantGuard implements CanActivate {
     // No tenantId is acceptable for auth-only routes (e.g. login, /me)
     if (!ctx.tenantId) return true;
 
-    const result = UuidSchema.safeParse(ctx.tenantId);
-    if (!result.success) {
+    if (!TenantIdSchema.test(ctx.tenantId)) {
       throw new ForbiddenException('Invalid tenant identifier');
     }
 

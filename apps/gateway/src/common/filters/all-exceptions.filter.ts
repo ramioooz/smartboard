@@ -1,8 +1,8 @@
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { Catch, HttpException, HttpStatus } from '@nestjs/common';
-import type { ServerResponse } from 'node:http';
+import type { FastifyReply } from 'fastify';
 import type { ApiError } from '@smartboard/shared';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -10,7 +10,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const res = ctx.getResponse<ServerResponse>();
+    const res = ctx.getResponse<FastifyReply>();
 
     const requestId = this.rcs.getOrUndefined()?.requestId;
 
@@ -47,9 +47,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       requestId,
     };
 
-    const json = JSON.stringify(body);
-    res.statusCode = status;
-    res.setHeader('content-type', 'application/json');
-    res.end(json);
+    void res.code(status).header('content-type', 'application/json').send(body);
   }
 }
