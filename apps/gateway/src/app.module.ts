@@ -13,6 +13,7 @@ import { TenantsController } from './routes/tenants/tenants.controller';
 import { DatasetsController } from './routes/datasets/datasets.controller';
 import { DashboardsController } from './routes/dashboards/dashboards.controller';
 import { AnalyticsController } from './routes/analytics/analytics.controller';
+import { RealtimeController } from './routes/realtime/realtime.controller';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AnalyticsController } from './routes/analytics/analytics.controller';
     DatasetsController,
     DashboardsController,
     AnalyticsController,
+    RealtimeController,
   ],
   providers: [
     // Guards run in registration order: AuthGuard hydrates context, TenantGuard validates it
