@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Dashboard } from '@prisma/client';
-import type { CreateDashboardSchema, PaginationSchema } from '@smartboard/shared';
+import type { CreateDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
 import type { PagedResult } from '@smartboard/shared';
 import type { PrismaService } from '../prisma/prisma.service';
 
 type CreateDashboardDto = ReturnType<typeof CreateDashboardSchema.parse>;
 type PaginationDto = ReturnType<typeof PaginationSchema.parse>;
+type SaveLayoutDto = ReturnType<typeof SaveLayoutSchema.parse>;
+type UpdateDashboardDto = { name?: string; description?: string };
 
 @Injectable()
 export class DashboardsService {
@@ -37,5 +39,34 @@ export class DashboardsService {
     ]);
 
     return { items, total, page, limit, hasMore: skip + items.length < total };
+  }
+
+  async findOne(id: string, tenantId: string): Promise<Dashboard> {
+    const dashboard = await this.prisma.dashboard.findFirst({
+      where: { id, tenantId },
+    });
+    if (!dashboard) throw new NotFoundException(`Dashboard ${id} not found`);
+    return dashboard;
+  }
+
+  async saveLayout(id: string, tenantId: string, dto: SaveLayoutDto): Promise<Dashboard> {
+    const existing = await this.prisma.dashboard.findFirst({ where: { id, tenantId } });
+    if (!existing) throw new NotFoundException(`Dashboard ${id} not found`);
+    return this.prisma.dashboard.update({
+      where: { id },
+      data: { panels: dto.panels as object[] },
+    });
+  }
+
+  async update(id: string, tenantId: string, dto: UpdateDashboardDto): Promise<Dashboard> {
+    const existing = await this.prisma.dashboard.findFirst({ where: { id, tenantId } });
+    if (!existing) throw new NotFoundException(`Dashboard ${id} not found`);
+    return this.prisma.dashboard.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+      },
+    });
   }
 }

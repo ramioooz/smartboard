@@ -37,4 +37,26 @@ export class DashboardsClient {
     });
     return res.json() as Promise<T>;
   }
+
+  async put<T>(path: string, data: unknown): Promise<T> {
+    const res = await fetch(`${DASHBOARDS_SERVICE_URL}${path}`, {
+      method: 'PUT',
+      headers: this.buildHeaders(),
+      body: JSON.stringify(data),
+    }).catch(() => {
+      throw new ServiceUnavailableException('svc-dashboards is unreachable');
+    });
+    return res.json() as Promise<T>;
+  }
+
+  async patch<T>(path: string, data: unknown): Promise<T> {
+    const res = await fetch(`${DASHBOARDS_SERVICE_URL}${path}`, {
+      method: 'PATCH',
+      headers: this.buildHeaders(),
+      body: JSON.stringify(data),
+    }).catch(() => {
+      throw new ServiceUnavailableException('svc-dashboards is unreachable');
+    });
+    return res.json() as Promise<T>;
+  }
 }
