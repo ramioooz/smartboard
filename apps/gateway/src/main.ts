@@ -1,25 +1,24 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { Logger } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 const PORT = process.env['PORT'] ?? '4000';
-const SERVICE_NAME = 'smartboard-gateway';
+const SERVICE = 'smartboard-gateway';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false }),
+    new FastifyAdapter(),
+    { bufferLogs: true },
   );
-
+  app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
-
   await app.listen(PORT, '0.0.0.0');
-  Logger.log(`${SERVICE_NAME} listening on port ${PORT}`, 'Bootstrap');
 }
 
 bootstrap().catch((err) => {
-  console.error('Fatal error during bootstrap', err);
+  console.error(`[${SERVICE}] Fatal error during bootstrap`, err);
   process.exit(1);
 });

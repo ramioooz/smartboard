@@ -32,7 +32,11 @@
       "typescript": "^5.5.0"
     },
     "onlyBuiltDependencies": [
-      "@nestjs/core"
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "msgpackr-extract"
     ]
   }
 }
