@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
-import type { AnalyticsClient } from '../../services/clients/analytics.client';
+import { AnalyticsClient } from '../../services/clients/analytics.client';
 
 @Controller('analytics')
 export class AnalyticsController {

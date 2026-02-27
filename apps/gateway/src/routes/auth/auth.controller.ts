@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import { Public } from '../../common/decorators/public.decorator';
-import type { AuthClient } from '../../services/clients/auth.client';
+import { AuthClient } from '../../services/clients/auth.client';
 
 @Controller('auth')
 export class AuthController {

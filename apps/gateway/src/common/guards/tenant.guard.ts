@@ -1,8 +1,8 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import type { Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 
 // Accepts cuid2, UUID, or any non-empty opaque ID — reject only empty/whitespace
 const TenantIdSchema = /^[a-zA-Z0-9_-]{1,64}$/;

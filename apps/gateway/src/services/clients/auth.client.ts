@@ -1,5 +1,5 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 import { requireEnv } from '@smartboard/shared';
 
 const AUTH_SERVICE_URL = requireEnv('AUTH_SERVICE_URL');

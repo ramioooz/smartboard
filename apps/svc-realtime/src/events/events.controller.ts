@@ -1,6 +1,6 @@
 import { Controller, Get, Headers, Res, BadRequestException } from '@nestjs/common';
 import type { ServerResponse } from 'node:http';
-import type { EventsService } from './events.service';
+import { EventsService } from './events.service';
 
 @Controller('events')
 export class EventsController {

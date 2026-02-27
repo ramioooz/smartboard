@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Tenant, TenantMember } from '@prisma/client';
 import type { CreateTenantSchema } from '@smartboard/shared';
 import type { PagedResult } from '@smartboard/shared';
-import type { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 type CreateTenantDto = ReturnType<typeof CreateTenantSchema.parse>;
 type TenantWithMembers = Tenant & { members: TenantMember[] };

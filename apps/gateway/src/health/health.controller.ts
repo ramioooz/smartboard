@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import type { HealthCheckService } from '@nestjs/terminus';
+import { HealthCheckService } from '@nestjs/terminus';
 import type { HealthCheckResult } from '@nestjs/terminus';
 import { HealthCheck } from '@nestjs/terminus';
 import { Public } from '../common/decorators/public.decorator';
