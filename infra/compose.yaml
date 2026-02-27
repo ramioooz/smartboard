@@ -106,7 +106,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4010
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=auth
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
@@ -141,7 +141,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4020
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=tenants
     expose:
       - "4020"
@@ -170,7 +170,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4030
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       MINIO_ENDPOINT: minio
@@ -202,7 +202,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4040
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
     expose:
       - "4040"
@@ -227,7 +227,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4050
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=dashboards
     expose:
       - "4050"
@@ -252,7 +252,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4060
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       SESSION_SECRET: ${SESSION_SECRET}
     expose:
@@ -282,7 +282,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4070
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
       DATABASE_URL_DATASETS: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
@@ -325,7 +325,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4000
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_LEVEL: ${LOG_LEVEL}
       SESSION_SECRET: ${SESSION_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
