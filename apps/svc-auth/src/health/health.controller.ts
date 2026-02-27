@@ -5,6 +5,7 @@ import {
   HealthCheck
 } from '@nestjs/terminus';
 import { PrismaService } from '../prisma/prisma.service';
+import { getInstanceId } from '@smartboard/shared';
 
 @Controller('health')
 export class HealthController {
@@ -14,22 +15,24 @@ export class HealthController {
   ) {}
 
   @Get('live')
-  live(): { status: string; service: string; timestamp: string } {
+  live(): { status: string; service: string; instance: string; timestamp: string } {
     return {
       status: 'ok',
       service: 'smartboard-svc-auth',
+      instance: getInstanceId(),
       timestamp: new Date().toISOString(),
     };
   }
 
   @Get('ready')
   @HealthCheck()
-  ready(): Promise<HealthCheckResult> {
-    return this.health.check([
+  async ready(): Promise<HealthCheckResult & { instance: string }> {
+    const result = await this.health.check([
       async (): Promise<HealthIndicatorResult> => {
         await this.prisma.$queryRaw`SELECT 1`;
         return { database: { status: 'up' } };
       },
     ]);
+    return { ...result, instance: getInstanceId() };
   }
 }
