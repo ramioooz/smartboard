@@ -14,12 +14,14 @@ import { DatasetsController } from './routes/datasets/datasets.controller';
 import { DashboardsController } from './routes/dashboards/dashboards.controller';
 import { AnalyticsController } from './routes/analytics/analytics.controller';
 import { RealtimeController } from './routes/realtime/realtime.controller';
+import { getInstanceId } from '@smartboard/shared';
 
 @Module({
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env['LOG_LEVEL'] ?? 'info',
+        base: { instance: getInstanceId() },
         transport:
           process.env['NODE_ENV'] !== 'production'
             ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
