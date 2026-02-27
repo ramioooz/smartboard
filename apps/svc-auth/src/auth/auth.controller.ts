@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, P
 import type { ApiOk } from '@smartboard/shared';
 import { DevLoginSchema, UserPreferencesSchema } from '@smartboard/shared';
 import type { User } from '@prisma/client';
-import { AuthService } from './auth.service';
+import type { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {

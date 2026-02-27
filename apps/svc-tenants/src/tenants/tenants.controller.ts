@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Post } f
 import type { ApiOk, PagedResult } from '@smartboard/shared';
 import { CreateTenantSchema } from '@smartboard/shared';
 import type { Tenant, TenantMember } from '@prisma/client';
-import { TenantsService } from './tenants.service';
+import type { TenantsService } from './tenants.service';
 
 type TenantWithMembers = Tenant & { members: TenantMember[] };
 

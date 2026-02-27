@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { TimeseriesQuerySchema } from '@smartboard/shared';
-import { PrismaService } from '../prisma/prisma.service';
+import type { PrismaService } from '../prisma/prisma.service';
 
 type TimeseriesQueryDto = ReturnType<typeof TimeseriesQuerySchema.parse>;
 

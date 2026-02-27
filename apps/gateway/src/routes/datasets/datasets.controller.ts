@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
-import { DatasetsClient } from '../../services/clients/datasets.client';
+import type { DatasetsClient } from '../../services/clients/datasets.client';
 
 @Controller('datasets')
 export class DatasetsController {

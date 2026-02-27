@@ -1,5 +1,5 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { RequestContextService } from '../../context/request-context.service';
+import type { RequestContextService } from '../../context/request-context.service';
 
 const TENANTS_SERVICE_URL =
   process.env['TENANTS_SERVICE_URL'] ?? 'http://localhost:4020';
