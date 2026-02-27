@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-smartboard}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartboard_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-smartboard}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -38,7 +38,7 @@ services:
     command: >
       redis-server
       --appendonly yes
-      --requirepass ${REDIS_PASSWORD:-redis_dev}
+      --requirepass ${REDIS_PASSWORD}
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
     ports:
@@ -46,7 +46,7 @@ services:
     volumes:
       - smartboard-redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redis_dev}", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -59,8 +59,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -83,7 +83,7 @@ services:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-        mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-smartboard_minio} ${MINIO_ROOT_PASSWORD:-minio_dev_secret};
+        mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
         mc mb --ignore-existing local/${MINIO_BUCKET_DATASETS:-smartboard-datasets};
         mc anonymous set none local/${MINIO_BUCKET_DATASETS:-smartboard-datasets};
         echo 'MinIO bucket initialised.';
@@ -106,12 +106,12 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4010
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=auth
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=auth
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
+      SESSION_SECRET: ${SESSION_SECRET}
       MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
       MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
       MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-}
@@ -141,8 +141,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4020
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=tenants
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=tenants
     expose:
       - "4020"
     healthcheck:
@@ -170,14 +170,14 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4030
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@redis:6379
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_USE_SSL: "false"
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
     expose:
       - "4030"
@@ -202,8 +202,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4040
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
     expose:
       - "4040"
     healthcheck:
@@ -227,8 +227,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4050
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=dashboards
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=dashboards
     expose:
       - "4050"
     healthcheck:
@@ -252,9 +252,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4060
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@redis:6379
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
+      LOG_LEVEL: ${LOG_LEVEL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      SESSION_SECRET: ${SESSION_SECRET}
     expose:
       - "4060"
     healthcheck:
@@ -282,15 +282,15 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4070
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
-      DATABASE_URL_DATASETS: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@redis:6379
+      LOG_LEVEL: ${LOG_LEVEL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
+      DATABASE_URL_DATASETS: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=datasets
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_USE_SSL: "false"
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
     expose:
       - "4070"
@@ -325,9 +325,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 4000
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
+      LOG_LEVEL: ${LOG_LEVEL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
       # Service discovery — docker compose DNS
       AUTH_SERVICE_URL: http://svc-auth:4010
