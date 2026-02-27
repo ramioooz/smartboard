@@ -13,7 +13,6 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: smartboard-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-smartboard}
@@ -35,7 +34,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: smartboard-redis
     restart: unless-stopped
     command: >
       redis-server
@@ -58,7 +56,6 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: smartboard-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -81,7 +78,6 @@ services:
   # MinIO bucket initialiser — runs once to create the datasets bucket
   minio-init:
     image: minio/mc:latest
-    container_name: smartboard-minio-init
     depends_on:
       minio:
         condition: service_healthy
@@ -312,7 +308,6 @@ services:
       context: ../
       dockerfile: apps/gateway/Dockerfile
     image: smartboard-gateway:local
-    container_name: smartboard-gateway
     restart: unless-stopped
     depends_on:
       svc-auth:
@@ -357,7 +352,6 @@ services:
       context: ../
       dockerfile: apps/web/Dockerfile
     image: smartboard-web:local
-    container_name: smartboard-web
     restart: unless-stopped
     depends_on:
       gateway:
