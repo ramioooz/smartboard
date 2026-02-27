@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Dashboard } from '@prisma/client';
 import type { CreateDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
 import type { PagedResult } from '@smartboard/shared';
-import type { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 type CreateDashboardDto = ReturnType<typeof CreateDashboardSchema.parse>;
 type PaginationDto = ReturnType<typeof PaginationSchema.parse>;

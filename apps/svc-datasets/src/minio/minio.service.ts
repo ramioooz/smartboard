@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import * as Minio from 'minio';
+import { requireEnv } from '@smartboard/shared';
 
-const BUCKET = process.env['MINIO_BUCKET_DATASETS'] ?? 'smartboard-datasets';
+const BUCKET = requireEnv('MINIO_BUCKET_DATASETS');
 const PRESIGNED_TTL = 15 * 60; // 15 minutes
 
 @Injectable()
@@ -12,11 +13,11 @@ export class MinioService implements OnModuleInit {
 
   onModuleInit(): void {
     this.client = new Minio.Client({
-      endPoint: process.env['MINIO_ENDPOINT'] ?? 'localhost',
-      port: parseInt(process.env['MINIO_PORT'] ?? '9000', 10),
+      endPoint: requireEnv('MINIO_ENDPOINT'),
+      port: parseInt(requireEnv('MINIO_PORT'), 10),
       useSSL: process.env['MINIO_USE_SSL'] === 'true',
-      accessKey: process.env['MINIO_ROOT_USER'] ?? 'smartboard_minio',
-      secretKey: process.env['MINIO_ROOT_PASSWORD'] ?? 'minio_dev_secret',
+      accessKey: requireEnv('MINIO_ROOT_USER'),
+      secretKey: requireEnv('MINIO_ROOT_PASSWORD'),
     });
   }
 

@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
-import type { HealthCheckService } from '@nestjs/terminus';
+import { HealthCheckService } from '@nestjs/terminus';
 import type { HealthCheckResult, HealthIndicatorResult } from '@nestjs/terminus';
 import { HealthCheck } from '@nestjs/terminus';
-import type { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 @Controller('health')
 export class HealthController {

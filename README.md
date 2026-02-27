@@ -376,7 +376,7 @@ smartboard/
 │   ├── svc-realtime/     # SSE/WS realtime push (port 4060)
 │   └── worker/           # BullMQ job processor (port 4070)
 ├── packages/
-│   ├── shared/           # DTOs, Zod schemas, event contracts, types
+│   ├── shared/           # DTOs, Zod schemas, event contracts, types, env utilities
 │   ├── config/           # Shared ESLint, Prettier, tsconfig
 │   └── ui/               # Shared UI primitives
 ├── infra/
@@ -390,3 +390,14 @@ smartboard/
 ├── tsconfig.base.json
 └── .env.example
 ```
+
+### `packages/shared` exports
+
+| Module | What it provides |
+|---|---|
+| `schemas/` | Zod schemas — `IdSchema`, `TimeseriesQuerySchema`, `CreateTenantSchema`, etc. |
+| `types/` | TypeScript interfaces — `RequestContext`, `ApiResponse`, `Role`, `Theme`, etc. |
+| `events/` | Event type definitions — `DatasetReadyEvent`, `DatasetErrorEvent`, etc. |
+| `env` | `requireEnv(name)` — throws at startup if a required env var is missing |
+
+Backend services import `requireEnv` from `@smartboard/shared`. The web app keeps its own `apps/web/src/lib/env.ts` for `NEXT_PUBLIC_*` vars which are Next.js-specific.

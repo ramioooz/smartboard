@@ -1,8 +1,8 @@
-import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
+import { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { Catch, HttpException, HttpStatus } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import type { ApiError } from '@smartboard/shared';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

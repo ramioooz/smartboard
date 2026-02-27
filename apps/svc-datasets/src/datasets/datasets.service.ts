@@ -5,9 +5,9 @@ import { Queue } from 'bullmq';
 import type { CreateDatasetSchema, PaginationSchema } from '@smartboard/shared';
 import { JOB_NAMES } from '@smartboard/shared';
 import type { DatasetIngestPayload, PagedResult } from '@smartboard/shared';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { RedisService } from '../redis/redis.service';
-import type { MinioService } from '../minio/minio.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
+import { MinioService } from '../minio/minio.service';
 
 type CreateDatasetDto = ReturnType<typeof CreateDatasetSchema.parse>;
 type PaginationDto = ReturnType<typeof PaginationSchema.parse>;

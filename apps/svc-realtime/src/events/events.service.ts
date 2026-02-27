@@ -3,7 +3,7 @@ import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type Redis from 'ioredis';
 import type { SmartboardEvent } from '@smartboard/shared';
 import { EVENT_NAMES } from '@smartboard/shared';
-import type { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 type Listener = (event: SmartboardEvent) => void;
 

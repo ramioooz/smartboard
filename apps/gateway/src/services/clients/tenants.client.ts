@@ -1,8 +1,8 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import type { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../../context/request-context.service';
+import { requireEnv } from '@smartboard/shared';
 
-const TENANTS_SERVICE_URL =
-  process.env['TENANTS_SERVICE_URL'] ?? 'http://localhost:4020';
+const TENANTS_SERVICE_URL = requireEnv('TENANTS_SERVICE_URL');
 
 @Injectable()
 export class TenantsClient {

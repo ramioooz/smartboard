@@ -5,10 +5,10 @@ import type { Job } from 'bullmq';
 import { parse as parseCsv } from 'csv-parse';
 import * as Minio from 'minio';
 import type { DatasetIngestPayload } from '@smartboard/shared';
-import { JOB_NAMES, EVENT_NAMES } from '@smartboard/shared';
+import { JOB_NAMES, EVENT_NAMES, requireEnv } from '@smartboard/shared';
 import type { DatasetReadyEvent, DatasetErrorEvent } from '@smartboard/shared';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { RedisService } from '../redis/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 interface EventRow {
   tenantId: string;
@@ -31,11 +31,11 @@ export class IngestProcessor implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     this.minio = new Minio.Client({
-      endPoint: process.env['MINIO_ENDPOINT'] ?? 'localhost',
-      port: parseInt(process.env['MINIO_PORT'] ?? '9000', 10),
+      endPoint: requireEnv('MINIO_ENDPOINT'),
+      port: parseInt(requireEnv('MINIO_PORT'), 10),
       useSSL: process.env['MINIO_USE_SSL'] === 'true',
-      accessKey: process.env['MINIO_ROOT_USER'] ?? 'smartboard_minio',
-      secretKey: process.env['MINIO_ROOT_PASSWORD'] ?? 'minio_dev_secret',
+      accessKey: requireEnv('MINIO_ROOT_USER'),
+      secretKey: requireEnv('MINIO_ROOT_PASSWORD'),
     });
 
     this.worker = new Worker<DatasetIngestPayload>(
@@ -68,7 +68,7 @@ export class IngestProcessor implements OnModuleInit, OnModuleDestroy {
     try {
       // 1. Stream the file from MinIO
       const stream = await this.minio.getObject(
-        process.env['MINIO_BUCKET_DATASETS'] ?? 'smartboard-datasets',
+        requireEnv('MINIO_BUCKET_DATASETS'),
         s3Key,
       );
 
