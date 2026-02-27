@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
-import { DashboardsClient } from '../../services/clients/dashboards.client';
+import type { DashboardsClient } from '../../services/clients/dashboards.client';
 
 @Controller('dashboards')
 export class DashboardsController {

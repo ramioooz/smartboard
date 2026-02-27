@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import type { UserPreferencesSchema } from '@smartboard/shared';
-import { PrismaService } from '../prisma/prisma.service';
+import type { PrismaService } from '../prisma/prisma.service';
 
 type UserPreferences = ReturnType<typeof UserPreferencesSchema.parse>;
 

@@ -1,7 +1,7 @@
 import { BadRequestException, Controller, Get, Headers, Query } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import { TimeseriesQuerySchema } from '@smartboard/shared';
-import { AnalyticsService } from './analytics.service';
+import type { AnalyticsService } from './analytics.service';
 
 @Controller('analytics')
 export class AnalyticsController {

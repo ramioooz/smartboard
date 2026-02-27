@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, NotFound
 import type { ApiOk, PagedResult } from '@smartboard/shared';
 import { CreateDatasetSchema, PaginationSchema } from '@smartboard/shared';
 import type { Dataset } from '@prisma/client';
-import { DatasetsService } from './datasets.service';
+import type { DatasetsService } from './datasets.service';
 import type { CreateDatasetResult } from './datasets.service';
 
 @Controller('datasets')

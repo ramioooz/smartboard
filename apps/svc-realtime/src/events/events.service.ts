@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import Redis from 'ioredis';
+import type Redis from 'ioredis';
 import type { SmartboardEvent } from '@smartboard/shared';
 import { EVENT_NAMES } from '@smartboard/shared';
-import { RedisService } from '../redis/redis.service';
+import type { RedisService } from '../redis/redis.service';
 
 type Listener = (event: SmartboardEvent) => void;
 

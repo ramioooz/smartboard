@@ -1,6 +1,6 @@
 import { Controller, Get, Headers, Res, BadRequestException } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { RequestContextService } from '../../context/request-context.service';
+import type { RequestContextService } from '../../context/request-context.service';
 
 const REALTIME_SERVICE_URL =
   process.env['REALTIME_SERVICE_URL'] ?? 'http://localhost:4060';

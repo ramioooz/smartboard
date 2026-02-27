@@ -1,5 +1,5 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { RequestContextService } from '../../context/request-context.service';
+import type { RequestContextService } from '../../context/request-context.service';
 
 const DATASETS_SERVICE_URL =
   process.env['DATASETS_SERVICE_URL'] ?? 'http://localhost:4030';
