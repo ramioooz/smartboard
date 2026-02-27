@@ -1,7 +1,8 @@
-const BASE =
-  (typeof window !== 'undefined'
-    ? process.env.NEXT_PUBLIC_GATEWAY_URL
-    : process.env.NEXT_PUBLIC_GATEWAY_URL) ?? 'http://localhost:4000';
+function getGatewayUrl(): string {
+  const url = process.env.NEXT_PUBLIC_GATEWAY_URL;
+  if (!url) throw new Error('Missing required environment variable: NEXT_PUBLIC_GATEWAY_URL');
+  return url;
+}
 
 interface FetchOptions extends RequestInit {
   userId?: string;
@@ -25,7 +26,7 @@ export async function apiFetch<T>(path: string, init: FetchOptions = {}): Promis
   if (userId) headers.set('x-user-id', userId);
   if (tenantId) headers.set('x-tenant-id', tenantId);
 
-  const res = await fetch(`${BASE}${path}`, { ...rest, headers });
+  const res = await fetch(`${getGatewayUrl()}${path}`, { ...rest, headers });
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

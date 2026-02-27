@@ -1,8 +1,13 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { RequestContextService } from '../../context/request-context.service';
 
-const TENANTS_SERVICE_URL =
-  process.env['TENANTS_SERVICE_URL'] ?? 'http://localhost:4020';
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+const TENANTS_SERVICE_URL = requireEnv('TENANTS_SERVICE_URL');
 
 @Injectable()
 export class TenantsClient {

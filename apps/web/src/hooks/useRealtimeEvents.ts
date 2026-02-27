@@ -5,7 +5,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getTenantId } from '@/lib/tenant';
 import { getUserId } from '@/lib/auth';
 
-const BASE = process.env.NEXT_PUBLIC_GATEWAY_URL ?? 'http://localhost:4000';
+function getGatewayUrl(): string {
+  const url = process.env.NEXT_PUBLIC_GATEWAY_URL;
+  if (!url) throw new Error('Missing required environment variable: NEXT_PUBLIC_GATEWAY_URL');
+  return url;
+}
 
 interface DatasetEvent {
   event: 'dataset.ready' | 'dataset.error';
@@ -29,7 +33,7 @@ export function useRealtimeEvents(): void {
     const userId = getUserId();
     if (!tenantId || !userId) return;
 
-    const url = `${BASE}/api/realtime/stream`;
+    const url = `${getGatewayUrl()}/api/realtime/stream`;
 
     // EventSource doesn't support custom headers — use fetch with ReadableStream instead
     const controller = new AbortController();

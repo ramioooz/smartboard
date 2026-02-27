@@ -2,8 +2,13 @@ import { Controller, Get, Headers, Res, BadRequestException } from '@nestjs/comm
 import type { FastifyReply } from 'fastify';
 import type { RequestContextService } from '../../context/request-context.service';
 
-const REALTIME_SERVICE_URL =
-  process.env['REALTIME_SERVICE_URL'] ?? 'http://localhost:4060';
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+const REALTIME_SERVICE_URL = requireEnv('REALTIME_SERVICE_URL');
 
 @Controller('realtime')
 export class RealtimeController {

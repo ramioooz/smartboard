@@ -1,8 +1,13 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { RequestContextService } from '../../context/request-context.service';
 
-const DASHBOARDS_SERVICE_URL =
-  process.env['DASHBOARDS_SERVICE_URL'] ?? 'http://localhost:4050';
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+const DASHBOARDS_SERVICE_URL = requireEnv('DASHBOARDS_SERVICE_URL');
 
 @Injectable()
 export class DashboardsClient {

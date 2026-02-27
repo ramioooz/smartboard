@@ -8,7 +8,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client!: Redis;
 
   onModuleInit(): void {
-    this.client = new Redis(process.env['REDIS_URL'] ?? 'redis://localhost:6379', {
+    const redisUrl = process.env['REDIS_URL'];
+    if (!redisUrl) throw new Error('Missing required environment variable: REDIS_URL');
+    this.client = new Redis(redisUrl, {
       maxRetriesPerRequest: null,
       lazyConnect: true,
     });
