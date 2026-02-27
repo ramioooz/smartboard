@@ -103,7 +103,6 @@ services:
       context: ../
       dockerfile: apps/svc-auth/Dockerfile
     image: smartboard-svc-auth:local
-    container_name: smartboard-svc-auth
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -123,8 +122,8 @@ services:
       MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-http://localhost:4000/auth/microsoft/callback}
       DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
       DEV_DEFAULT_EMAIL: ${DEV_DEFAULT_EMAIL:-dev@local}
-    ports:
-      - "4010:4010"
+    expose:
+      - "4010"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4010/health/ready"]
       interval: 15s
@@ -139,7 +138,6 @@ services:
       context: ../
       dockerfile: apps/svc-tenants/Dockerfile
     image: smartboard-svc-tenants:local
-    container_name: smartboard-svc-tenants
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -149,8 +147,8 @@ services:
       PORT: 4020
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=tenants
-    ports:
-      - "4020:4020"
+    expose:
+      - "4020"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4020/health/ready"]
       interval: 15s
@@ -165,7 +163,6 @@ services:
       context: ../
       dockerfile: apps/svc-datasets/Dockerfile
     image: smartboard-svc-datasets:local
-    container_name: smartboard-svc-datasets
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -186,8 +183,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
       MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
-    ports:
-      - "4030:4030"
+    expose:
+      - "4030"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4030/health/ready"]
       interval: 15s
@@ -202,7 +199,6 @@ services:
       context: ../
       dockerfile: apps/svc-analytics/Dockerfile
     image: smartboard-svc-analytics:local
-    container_name: smartboard-svc-analytics
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -212,8 +208,8 @@ services:
       PORT: 4040
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=analytics
-    ports:
-      - "4040:4040"
+    expose:
+      - "4040"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4040/health/ready"]
       interval: 15s
@@ -228,7 +224,6 @@ services:
       context: ../
       dockerfile: apps/svc-dashboards/Dockerfile
     image: smartboard-svc-dashboards:local
-    container_name: smartboard-svc-dashboards
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -238,8 +233,8 @@ services:
       PORT: 4050
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD:-smartboard_dev}@smartboard-postgres:5432/${POSTGRES_DB:-smartboard}?schema=dashboards
-    ports:
-      - "4050:4050"
+    expose:
+      - "4050"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4050/health/ready"]
       interval: 15s
@@ -254,7 +249,6 @@ services:
       context: ../
       dockerfile: apps/svc-realtime/Dockerfile
     image: smartboard-svc-realtime:local
-    container_name: smartboard-svc-realtime
     restart: unless-stopped
     depends_on:
       smartboard-redis:
@@ -265,8 +259,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev}@smartboard-redis:6379
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production-at-least-32-chars}
-    ports:
-      - "4060:4060"
+    expose:
+      - "4060"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4060/health/ready"]
       interval: 15s
@@ -281,7 +275,6 @@ services:
       context: ../
       dockerfile: apps/worker/Dockerfile
     image: smartboard-worker:local
-    container_name: smartboard-worker
     restart: unless-stopped
     depends_on:
       smartboard-postgres:
@@ -303,8 +296,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smartboard_minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_dev_secret}
       MINIO_BUCKET_DATASETS: ${MINIO_BUCKET_DATASETS:-smartboard-datasets}
-    ports:
-      - "4070:4070"
+    expose:
+      - "4070"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4070/health/ready"]
       interval: 15s
