@@ -3,17 +3,16 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './health/health.module';
 import { RequestContextModule } from './context/request-context.module';
-import { ServicesModule } from './services/services.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { AuthController } from './routes/auth/auth.controller';
-import { TenantsController } from './routes/tenants/tenants.controller';
-import { DatasetsController } from './routes/datasets/datasets.controller';
-import { DashboardsController } from './routes/dashboards/dashboards.controller';
-import { AnalyticsController } from './routes/analytics/analytics.controller';
-import { RealtimeController } from './routes/realtime/realtime.controller';
+import { AuthModule } from './routes/auth/auth.module';
+import { TenantsModule } from './routes/tenants/tenants.module';
+import { DatasetsModule } from './routes/datasets/datasets.module';
+import { DashboardsModule } from './routes/dashboards/dashboards.module';
+import { AnalyticsModule } from './routes/analytics/analytics.module';
+import { RealtimeModule } from './routes/realtime/realtime.module';
 import { getInstanceId } from '@smartboard/shared';
 
 @Module({
@@ -29,17 +28,14 @@ import { getInstanceId } from '@smartboard/shared';
         redact: ['req.headers.authorization', 'req.headers.cookie'],
       },
     }),
-    RequestContextModule, // @Global — must come before ServicesModule
-    ServicesModule,
+    RequestContextModule, // @Global — must come before feature modules
     HealthModule,
-  ],
-  controllers: [
-    AuthController,
-    TenantsController,
-    DatasetsController,
-    DashboardsController,
-    AnalyticsController,
-    RealtimeController,
+    AuthModule,
+    TenantsModule,
+    DatasetsModule,
+    DashboardsModule,
+    AnalyticsModule,
+    RealtimeModule,
   ],
   providers: [
     // Guards run in registration order: AuthGuard hydrates context, TenantGuard validates it

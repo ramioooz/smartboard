@@ -1,51 +1,11 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { RequestContextService } from '../../context/request-context.service';
+import { Injectable } from '@nestjs/common';
 import { requireEnv } from '@smartboard/shared';
-
-const AUTH_SERVICE_URL = requireEnv('AUTH_SERVICE_URL');
+import { RequestContextService } from '../../context/request-context.service';
+import { BaseClient } from './base.client';
 
 @Injectable()
-export class AuthClient {
-  constructor(private readonly rcs: RequestContextService) {}
-
-  private buildHeaders(): Record<string, string> {
-    const ctx = this.rcs.getOrUndefined();
-    const headers: Record<string, string> = { 'content-type': 'application/json' };
-    if (ctx?.requestId) headers['x-request-id'] = ctx.requestId;
-    if (ctx?.userId) headers['x-user-id'] = ctx.userId;
-    if (ctx?.tenantId) headers['x-tenant-id'] = ctx.tenantId;
-    return headers;
-  }
-
-  async get<T>(path: string): Promise<T> {
-    const res = await fetch(`${AUTH_SERVICE_URL}${path}`, {
-      method: 'GET',
-      headers: this.buildHeaders(),
-    }).catch(() => {
-      throw new ServiceUnavailableException('svc-auth is unreachable');
-    });
-    return res.json() as Promise<T>;
-  }
-
-  async post<T>(path: string, data: unknown): Promise<T> {
-    const res = await fetch(`${AUTH_SERVICE_URL}${path}`, {
-      method: 'POST',
-      headers: this.buildHeaders(),
-      body: JSON.stringify(data),
-    }).catch(() => {
-      throw new ServiceUnavailableException('svc-auth is unreachable');
-    });
-    return res.json() as Promise<T>;
-  }
-
-  async patch<T>(path: string, data: unknown): Promise<T> {
-    const res = await fetch(`${AUTH_SERVICE_URL}${path}`, {
-      method: 'PATCH',
-      headers: this.buildHeaders(),
-      body: JSON.stringify(data),
-    }).catch(() => {
-      throw new ServiceUnavailableException('svc-auth is unreachable');
-    });
-    return res.json() as Promise<T>;
+export class AuthClient extends BaseClient {
+  constructor(rcs: RequestContextService) {
+    super(rcs, requireEnv('AUTH_SERVICE_URL'), 'svc-auth');
   }
 }
