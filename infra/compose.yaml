@@ -98,7 +98,7 @@ services:
 
   # ── Backend Services ─────────────────────────────────────────────────────────
 
-  smartboard-svc-auth:
+  svc-auth:
     build:
       context: ../
       dockerfile: apps/svc-auth/Dockerfile
@@ -133,7 +133,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-svc-tenants:
+  svc-tenants:
     build:
       context: ../
       dockerfile: apps/svc-tenants/Dockerfile
@@ -158,7 +158,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-svc-datasets:
+  svc-datasets:
     build:
       context: ../
       dockerfile: apps/svc-datasets/Dockerfile
@@ -194,7 +194,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-svc-analytics:
+  svc-analytics:
     build:
       context: ../
       dockerfile: apps/svc-analytics/Dockerfile
@@ -219,7 +219,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-svc-dashboards:
+  svc-dashboards:
     build:
       context: ../
       dockerfile: apps/svc-dashboards/Dockerfile
@@ -244,7 +244,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-svc-realtime:
+  svc-realtime:
     build:
       context: ../
       dockerfile: apps/svc-realtime/Dockerfile
@@ -270,7 +270,7 @@ services:
     networks:
       - smartboard-net
 
-  smartboard-worker:
+  worker:
     build:
       context: ../
       dockerfile: apps/worker/Dockerfile
@@ -315,17 +315,17 @@ services:
     container_name: smartboard-gateway
     restart: unless-stopped
     depends_on:
-      smartboard-svc-auth:
+      svc-auth:
         condition: service_healthy
-      smartboard-svc-tenants:
+      svc-tenants:
         condition: service_healthy
-      smartboard-svc-datasets:
+      svc-datasets:
         condition: service_healthy
-      smartboard-svc-analytics:
+      svc-analytics:
         condition: service_healthy
-      smartboard-svc-dashboards:
+      svc-dashboards:
         condition: service_healthy
-      smartboard-svc-realtime:
+      svc-realtime:
         condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV:-development}
@@ -335,12 +335,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production-at-least-32-chars}
       DEV_BYPASS_AUTH: ${DEV_BYPASS_AUTH:-true}
       # Service discovery — docker compose DNS
-      AUTH_SERVICE_URL: http://smartboard-svc-auth:4010
-      TENANTS_SERVICE_URL: http://smartboard-svc-tenants:4020
-      DATASETS_SERVICE_URL: http://smartboard-svc-datasets:4030
-      ANALYTICS_SERVICE_URL: http://smartboard-svc-analytics:4040
-      DASHBOARDS_SERVICE_URL: http://smartboard-svc-dashboards:4050
-      REALTIME_SERVICE_URL: http://smartboard-svc-realtime:4060
+      AUTH_SERVICE_URL: http://svc-auth:4010
+      TENANTS_SERVICE_URL: http://svc-tenants:4020
+      DATASETS_SERVICE_URL: http://svc-datasets:4030
+      ANALYTICS_SERVICE_URL: http://svc-analytics:4040
+      DASHBOARDS_SERVICE_URL: http://svc-dashboards:4050
+      REALTIME_SERVICE_URL: http://svc-realtime:4060
     ports:
       - "4000:4000"
     healthcheck:
