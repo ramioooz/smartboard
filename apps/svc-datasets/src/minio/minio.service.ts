@@ -1,12 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import * as Minio from 'minio';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
-}
+import { requireEnv } from '@smartboard/shared';
 
 const BUCKET = requireEnv('MINIO_BUCKET_DATASETS');
 const PRESIGNED_TTL = 15 * 60; // 15 minutes

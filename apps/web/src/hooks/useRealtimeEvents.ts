@@ -4,12 +4,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getTenantId } from '@/lib/tenant';
 import { getUserId } from '@/lib/auth';
-
-function getGatewayUrl(): string {
-  const url = process.env.NEXT_PUBLIC_GATEWAY_URL;
-  if (!url) throw new Error('Missing required environment variable: NEXT_PUBLIC_GATEWAY_URL');
-  return url;
-}
+import { getGatewayUrl } from '@/lib/env';
 
 interface DatasetEvent {
   event: 'dataset.ready' | 'dataset.error';

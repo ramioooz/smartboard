@@ -1,8 +1,4 @@
-function getGatewayUrl(): string {
-  const url = process.env.NEXT_PUBLIC_GATEWAY_URL;
-  if (!url) throw new Error('Missing required environment variable: NEXT_PUBLIC_GATEWAY_URL');
-  return url;
-}
+import { getGatewayUrl } from './env';
 
 interface FetchOptions extends RequestInit {
   userId?: string;

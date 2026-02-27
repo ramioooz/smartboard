@@ -1,11 +1,6 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { RequestContextService } from '../../context/request-context.service';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
-}
+import { requireEnv } from '@smartboard/shared';
 
 const DATASETS_SERVICE_URL = requireEnv('DATASETS_SERVICE_URL');
 

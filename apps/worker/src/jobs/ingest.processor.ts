@@ -5,16 +5,10 @@ import type { Job } from 'bullmq';
 import { parse as parseCsv } from 'csv-parse';
 import * as Minio from 'minio';
 import type { DatasetIngestPayload } from '@smartboard/shared';
-import { JOB_NAMES, EVENT_NAMES } from '@smartboard/shared';
+import { JOB_NAMES, EVENT_NAMES, requireEnv } from '@smartboard/shared';
 import type { DatasetReadyEvent, DatasetErrorEvent } from '@smartboard/shared';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { RedisService } from '../redis/redis.service';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
-}
 
 interface EventRow {
   tenantId: string;
