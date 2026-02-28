@@ -20,10 +20,11 @@
  *   A Bearer token you can paste into Insomnia / cURL and reuse for a year.
  */
 
+import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import jwt from 'jsonwebtoken';
-const { sign } = jwt;
+
+const require = createRequire(import.meta.url);
 
 // ── Load JWT_SECRET from .env (without requiring dotenv as a dep) ─────────────
 function loadEnv() {
@@ -84,6 +85,8 @@ try {
 }
 
 // ── Step 2: Sign a 1-year token with the same secret ─────────────────────────
+const { sign } = require('jsonwebtoken');
+
 const token = sign(
   { sub: userId },
   JWT_SECRET,
