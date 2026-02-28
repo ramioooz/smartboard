@@ -11,7 +11,7 @@ import { getInstanceId } from '@smartboard/shared';
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env['LOG_LEVEL'] ?? 'info',
+        level: process.env['LOG_LEVEL'],
         base: { instance: getInstanceId() },
         transport:
           process.env['NODE_ENV'] !== 'production'
