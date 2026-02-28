@@ -18,6 +18,7 @@
     "@nestjs/terminus": "^10.2.3",
     "@smartboard/nest-common": "workspace:*",
     "@smartboard/shared": "workspace:*",
+    "axios": "^1.13.6",
     "dotenv": "^17.3.1",
     "fastify": "^4.28.0",
     "jsonwebtoken": "^9.0.3",
