@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type Redis from 'ioredis';
 import type { SmartboardEvent } from '@smartboard/shared';
-import { EVENT_NAMES } from '@smartboard/shared';
+import { EVENT_CHANNEL } from '@smartboard/shared';
 import { RedisService } from '../redis/redis.service';
 
 type Listener = (event: SmartboardEvent) => void;
@@ -21,10 +21,9 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
     // Create a separate Redis connection for subscribe mode
     this.subscriber = this.redis.getClient().duplicate();
 
-    void this.subscriber.subscribe(
-      EVENT_NAMES.DATASET_READY,
-      EVENT_NAMES.DATASET_ERROR,
-    );
+    // Single channel — all platform events arrive here regardless of type.
+    // Adding new event types (EVENT_NAMES) requires no change to this file.
+    void this.subscriber.subscribe(EVENT_CHANNEL);
 
     this.subscriber.on('message', (_channel: string, message: string) => {
       try {
@@ -40,7 +39,7 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    this.logger.log('Subscribed to Redis channels: dataset.ready, dataset.error');
+    this.logger.log(`Subscribed to Redis channel: ${EVENT_CHANNEL}`);
   }
 
   async onModuleDestroy(): Promise<void> {

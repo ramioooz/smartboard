@@ -5,7 +5,7 @@ import type { Job } from 'bullmq';
 import { parse as parseCsv } from 'csv-parse';
 import * as Minio from 'minio';
 import type { DatasetIngestPayload } from '@smartboard/shared';
-import { JOB_NAMES, EVENT_NAMES, requireEnv } from '@smartboard/shared';
+import { JOB_NAMES, EVENT_NAMES, EVENT_CHANNEL, requireEnv } from '@smartboard/shared';
 import type { DatasetReadyEvent, DatasetErrorEvent } from '@smartboard/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -124,8 +124,8 @@ export class IngestProcessor implements OnModuleInit, OnModuleDestroy {
         rowCount: rows.length,
         processedAt: new Date().toISOString(),
       };
-      await this.redis.getClient().publish(EVENT_NAMES.DATASET_READY, JSON.stringify(event));
-      this.logger.log(`Published ${EVENT_NAMES.DATASET_READY} for dataset ${datasetId}`);
+      await this.redis.getClient().publish(EVENT_CHANNEL, JSON.stringify(event));
+      this.logger.log(`Published ${EVENT_NAMES.DATASET_READY} to ${EVENT_CHANNEL} for dataset ${datasetId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
 
@@ -149,7 +149,7 @@ export class IngestProcessor implements OnModuleInit, OnModuleDestroy {
         reason: message,
         failedAt: new Date().toISOString(),
       };
-      await this.redis.getClient().publish(EVENT_NAMES.DATASET_ERROR, JSON.stringify(event));
+      await this.redis.getClient().publish(EVENT_CHANNEL, JSON.stringify(event));
 
       throw err;
     }
