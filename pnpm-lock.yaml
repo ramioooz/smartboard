@@ -20,6 +20,9 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.34)(ts-node@10.9.2(@types/node@20.19.34)(typescript@5.9.3))
+      jsonwebtoken:
+        specifier: ^9.0.3
+        version: 9.0.3
       prettier:
         specifier: ^3.3.0
         version: 3.8.1
