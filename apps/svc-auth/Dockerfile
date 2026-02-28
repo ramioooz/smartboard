@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/nest-common/package.json ./packages/nest-common/
 COPY packages/ui/package.json ./packages/ui/
 COPY apps/svc-auth/package.json ./apps/svc-auth/
 
@@ -24,6 +25,7 @@ COPY --from=deps /app/apps/svc-auth/node_modules ./apps/svc-auth/node_modules
 COPY . .
 
 RUN pnpm --filter @smartboard/shared run build
+RUN pnpm --filter @smartboard/nest-common run build
 RUN pnpm --filter @smartboard/svc-auth run db:generate
 RUN pnpm --filter @smartboard/svc-auth run build
 
@@ -39,6 +41,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
 # Copy built output and production deps
 COPY --from=builder --chown=nestjs:nodejs /app/apps/svc-auth/dist ./apps/svc-auth/dist
 COPY --from=builder --chown=nestjs:nodejs /app/packages/shared ./packages/shared
+COPY --from=builder --chown=nestjs:nodejs /app/packages/nest-common ./packages/nest-common
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/apps/svc-auth/node_modules ./apps/svc-auth/node_modules
 
