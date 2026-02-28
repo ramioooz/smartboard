@@ -3,6 +3,7 @@ import type { ApiOk, UserPreferences } from '@smartboard/shared';
 import { DevLoginSchema, UserPreferencesSchema } from '@smartboard/shared';
 import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { User } from '@prisma/client';
+import type { LoginResult } from './auth.service';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -11,12 +12,12 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() body: unknown): Promise<ApiOk<User>> {
+  async login(@Body() body: unknown): Promise<ApiOk<LoginResult>> {
     // Lenient — defaults to 'dev@local' if body is missing or invalid
     const parsed = DevLoginSchema.safeParse(body);
     const email = parsed.success ? parsed.data.email : 'dev@local';
-    const user = await this.authService.login(email);
-    return { ok: true, data: user };
+    const result = await this.authService.login(email);
+    return { ok: true, data: result };
   }
 
   @Get('me')

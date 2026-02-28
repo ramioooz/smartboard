@@ -2,8 +2,16 @@ import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { IncomingMessage } from 'node:http';
+import { verify } from 'jsonwebtoken';
+import { requireEnv } from '@smartboard/shared';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { RequestContextService } from '../../context/request-context.service';
+
+interface JwtPayload {
+  sub: string;
+  iat: number;
+  exp: number;
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,18 +28,37 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest<IncomingMessage>();
-    const userId = request.headers['x-user-id'] as string | undefined;
-    const tenantId = request.headers['x-tenant-id'] as string | undefined;
-
-    if (!userId && !tenantId) {
-      throw new UnauthorizedException('Missing x-user-id and x-tenant-id headers');
-    }
-
-    // Mutate the existing ALS context — middleware already called storage.run(ctx, next)
     const ctx = this.rcs.get();
-    if (userId) ctx.userId = userId;
+
+    // x-tenant-id is always explicit — a user can belong to many tenants
+    // and selects one per request. Identity comes from the JWT, not a header.
+    const tenantId = request.headers['x-tenant-id'] as string | undefined;
     if (tenantId) ctx.tenantId = tenantId;
 
-    return true;
+    // ── JWT verification (stateless, identical in dev and prod) ────────────
+    // The gateway verifies the JWT signature locally using the shared
+    // JWT_SECRET. No network call to svc-auth is ever made — O(1), fully
+    // stateless, every gateway replica can verify any request independently.
+    //
+    // For local development and Insomnia/cURL testing, generate a long-lived
+    // dev token once with:
+    //   node scripts/gen-dev-token.mjs
+    //
+    // TODO (future): add a Redis JTI blocklist check here for immediate
+    // token invalidation on logout before the token naturally expires.
+    const authHeader = request.headers['authorization'] as string | undefined;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+
+    if (!token) {
+      throw new UnauthorizedException('Missing Authorization: Bearer <token>');
+    }
+
+    try {
+      const payload = verify(token, requireEnv('JWT_SECRET')) as JwtPayload;
+      ctx.userId = payload.sub;
+      return true;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 }
