@@ -151,26 +151,26 @@ sequenceDiagram
 
 ### Local (Docker Compose)
 
-Services communicate via docker compose DNS:
+Services communicate via Docker Compose service-name DNS (the service key in `compose.yaml`):
 
 ```
-http://smartboard-svc-auth:4010
-http://smartboard-svc-tenants:4020
-http://smartboard-svc-datasets:4030
-http://smartboard-svc-analytics:4040
-http://smartboard-svc-dashboards:4050
-http://smartboard-svc-realtime:4060
+http://svc-auth:4010
+http://svc-tenants:4020
+http://svc-datasets:4030
+http://svc-analytics:4040
+http://svc-dashboards:4050
+http://svc-realtime:4060
 ```
 
 The Gateway reads these from env vars:
 
 ```
-AUTH_SERVICE_URL=http://smartboard-svc-auth:4010
-TENANTS_SERVICE_URL=http://smartboard-svc-tenants:4020
-DATASETS_SERVICE_URL=http://smartboard-svc-datasets:4030
-ANALYTICS_SERVICE_URL=http://smartboard-svc-analytics:4040
-DASHBOARDS_SERVICE_URL=http://smartboard-svc-dashboards:4050
-REALTIME_SERVICE_URL=http://smartboard-svc-realtime:4060
+AUTH_SERVICE_URL=http://svc-auth:4010
+TENANTS_SERVICE_URL=http://svc-tenants:4020
+DATASETS_SERVICE_URL=http://svc-datasets:4030
+ANALYTICS_SERVICE_URL=http://svc-analytics:4040
+DASHBOARDS_SERVICE_URL=http://svc-dashboards:4050
+REALTIME_SERVICE_URL=http://svc-realtime:4060
 ```
 
 ### AWS ECS (Production)

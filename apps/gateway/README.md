@@ -7,46 +7,62 @@ NestJS API edge layer — the single entry point for all web client requests.
 - AsyncLocalStorage RequestContext (requestId, userId, tenantId)
 - Request-ID propagation (x-request-id header in/out + downstream)
 - Pino structured logging with requestId on every line
-- Internal HTTP clients per service (auth, tenants, datasets, analytics, dashboards)
+- Per-domain feature modules (auth, tenants, datasets, analytics, dashboards, realtime)
+- Shared `BaseService` for HTTP proxying to downstream services
 - Consistent API error shape for frontend
-- Swagger/OpenAPI docs
-- Microsoft OIDC scaffold + DEV bypass login endpoint
 - Route handlers mapping to internal services
 
 ## Port
 `4000`
 
+## Structure
+```
+src/
+  auth/         auth.module.ts  auth.controller.ts  auth.service.ts
+  tenants/      tenants.module.ts  tenants.controller.ts  tenants.service.ts
+  datasets/     datasets.module.ts  datasets.controller.ts  datasets.service.ts
+  analytics/    analytics.module.ts  analytics.controller.ts  analytics.service.ts
+  dashboards/   dashboards.module.ts  dashboards.controller.ts  dashboards.service.ts
+  realtime/     realtime.module.ts  realtime.controller.ts  realtime.service.ts
+  common/       base.service.ts  guards/  filters/  decorators/  interceptors/
+  context/      request-context.module.ts (AsyncLocalStorage @Global)
+  health/       health.module.ts  health.controller.ts
+  app.module.ts
+  main.ts
+```
+
 ## Key Endpoints
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/auth/dev-login` | DEV only — mint session for dev@local |
-| `GET` | `/auth/microsoft/start` | Redirect to Microsoft OIDC |
-| `GET` | `/auth/microsoft/callback` | OIDC callback |
-| `POST` | `/auth/logout` | Clear session |
-| `GET` | `/me` | Current user |
-| `GET/PUT` | `/me/preferences` | Theme + scheme preferences |
+| `POST` | `/auth/login` | Login (DEV bypass or real auth) |
+| `GET` | `/auth/me` | Current user |
+| `PATCH` | `/auth/me/preferences` | Update user preferences |
 | `GET/POST` | `/tenants` | List/create tenants |
-| `POST` | `/tenants/:id/invite` | Invite member (stub) |
 | `GET/POST` | `/datasets` | List/create datasets |
-| `POST` | `/datasets/:id/upload-url` | Presigned MinIO URL |
-| `POST` | `/datasets/:id/ingest` | Trigger ingestion job |
+| `GET` | `/datasets/:id` | Get dataset by ID |
 | `GET/POST` | `/dashboards` | List/create dashboards |
-| `GET/PUT` | `/dashboards/:id` | Get/update dashboard |
+| `GET` | `/dashboards/:id` | Get dashboard by ID |
 | `PUT` | `/dashboards/:id/layout` | Save panel layout |
+| `PATCH` | `/dashboards/:id` | Update dashboard |
 | `GET` | `/analytics/timeseries` | Timeseries query |
+| `GET` | `/realtime/stream` | SSE event stream (proxied) |
 | `GET` | `/health/live` | Liveness check |
 | `GET` | `/health/ready` | Readiness check |
 
 ## Environment Variables
 | Variable | Description |
 |---|---|
-| `AUTH_BASE_URL` | svc-auth base URL |
-| `TENANTS_BASE_URL` | svc-tenants base URL |
-| `DATASETS_BASE_URL` | svc-datasets base URL |
-| `ANALYTICS_BASE_URL` | svc-analytics base URL |
-| `DASHBOARDS_BASE_URL` | svc-dashboards base URL |
+| `AUTH_SERVICE_URL` | svc-auth base URL |
+| `TENANTS_SERVICE_URL` | svc-tenants base URL |
+| `DATASETS_SERVICE_URL` | svc-datasets base URL |
+| `ANALYTICS_SERVICE_URL` | svc-analytics base URL |
+| `DASHBOARDS_SERVICE_URL` | svc-dashboards base URL |
+| `REALTIME_SERVICE_URL` | svc-realtime base URL |
+| `JWT_SECRET` | JWT signing secret |
 | `SESSION_SECRET` | Cookie session secret |
-| `DEV_BYPASS_AUTH` | Enable dev login endpoint |
+| `DEV_BYPASS_AUTH` | Skip JWT — pass x-user-id + x-tenant-id headers directly (default: false) |
+| `LOG_LEVEL` | Pino log level (default: info) |
+| `PORT` | HTTP port (default: 4000) |
 
 ## How to Run
 ```bash
