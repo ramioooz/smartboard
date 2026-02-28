@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import type { ApiOk, PagedResult } from '@smartboard/shared';
-import { CreateDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
+import type { ApiOk, CreateDashboard, PatchDashboard, Pagination, PagedResult, SaveLayout } from '@smartboard/shared';
+import { CreateDashboardSchema, PatchDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
+import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { Dashboard } from '@prisma/client';
 import { DashboardsService } from './dashboards.service';
 
@@ -11,23 +12,20 @@ export class DashboardsController {
   @Post()
   @HttpCode(201)
   async create(
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(CreateDashboardSchema)) body: CreateDashboard,
     @Headers('x-tenant-id') tenantId: string,
   ): Promise<ApiOk<Dashboard>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const parsed = CreateDashboardSchema.safeParse(body);
-    if (!parsed.success) throw new BadRequestException(parsed.error.flatten().fieldErrors);
-    const dashboard = await this.dashboardsService.create(parsed.data, tenantId);
+    const dashboard = await this.dashboardsService.create(body, tenantId);
     return { ok: true, data: dashboard };
   }
 
   @Get()
   async list(
     @Headers('x-tenant-id') tenantId: string,
-    @Query() query: Record<string, string>,
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: Pagination,
   ): Promise<ApiOk<PagedResult<Dashboard>>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const pagination = PaginationSchema.parse(query);
     const result = await this.dashboardsService.listForTenant(tenantId, pagination);
     return { ok: true, data: result };
   }
@@ -46,12 +44,10 @@ export class DashboardsController {
   async saveLayout(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(SaveLayoutSchema)) body: SaveLayout,
   ): Promise<ApiOk<Dashboard>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const parsed = SaveLayoutSchema.safeParse(body);
-    if (!parsed.success) throw new BadRequestException(parsed.error.flatten().fieldErrors);
-    const dashboard = await this.dashboardsService.saveLayout(id, tenantId, parsed.data);
+    const dashboard = await this.dashboardsService.saveLayout(id, tenantId, body);
     return { ok: true, data: dashboard };
   }
 
@@ -59,11 +55,10 @@ export class DashboardsController {
   async update(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(PatchDashboardSchema)) body: PatchDashboard,
   ): Promise<ApiOk<Dashboard>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const parsed = (body as { name?: string; description?: string }) ?? {};
-    const dashboard = await this.dashboardsService.update(id, tenantId, parsed);
+    const dashboard = await this.dashboardsService.update(id, tenantId, body);
     return { ok: true, data: dashboard };
   }
 }

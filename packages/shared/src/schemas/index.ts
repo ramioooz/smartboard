@@ -9,6 +9,7 @@ export const PaginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
+export type Pagination = z.infer<typeof PaginationSchema>;
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -35,10 +36,13 @@ export const CreateTenantSchema = z.object({
     .regex(/^[a-z0-9-]+$/),
 });
 
+export type CreateTenant = z.infer<typeof CreateTenantSchema>;
+
 export const InviteMemberSchema = z.object({
   email: z.string().email(),
   role: z.enum(['OWNER', 'ADMIN', 'VIEWER']).default('VIEWER'),
 });
+export type InviteMember = z.infer<typeof InviteMemberSchema>;
 
 // ─── Datasets ────────────────────────────────────────────────────────────────
 
@@ -57,6 +61,7 @@ export const DatasetStatusSchema = z.enum([
 ]);
 
 export type DatasetStatus = z.infer<typeof DatasetStatusSchema>;
+export type CreateDataset = z.infer<typeof CreateDatasetSchema>;
 
 // ─── Dashboards ──────────────────────────────────────────────────────────────
 
@@ -88,6 +93,12 @@ export const CreateDashboardSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
 });
+export type CreateDashboard = z.infer<typeof CreateDashboardSchema>;
+
+export const PatchDashboardSchema = CreateDashboardSchema.partial();
+export type PatchDashboard = z.infer<typeof PatchDashboardSchema>;
+
+export type SaveLayout = z.infer<typeof SaveLayoutSchema>;
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
 
@@ -98,3 +109,4 @@ export const TimeseriesQuerySchema = z.object({
   to: z.coerce.date(),
   bucket: z.enum(['minute', 'hour', 'day', 'week', 'month']).default('hour'),
 });
+export type TimeseriesQuery = z.infer<typeof TimeseriesQuerySchema>;

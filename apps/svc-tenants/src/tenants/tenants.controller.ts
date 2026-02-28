@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Post } from '@nestjs/common';
-import type { ApiOk, PagedResult } from '@smartboard/shared';
+import type { ApiOk, CreateTenant, PagedResult } from '@smartboard/shared';
 import { CreateTenantSchema } from '@smartboard/shared';
+import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { Tenant, TenantMember } from '@prisma/client';
 import { TenantsService } from './tenants.service';
 
@@ -13,13 +14,11 @@ export class TenantsController {
   @Post()
   @HttpCode(201)
   async create(
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(CreateTenantSchema)) body: CreateTenant,
     @Headers('x-user-id') userId: string,
   ): Promise<ApiOk<TenantWithMembers>> {
     if (!userId) throw new BadRequestException('Missing x-user-id header');
-    const parsed = CreateTenantSchema.safeParse(body);
-    if (!parsed.success) throw new BadRequestException(parsed.error.flatten().fieldErrors);
-    const tenant = await this.tenantsService.create(parsed.data, userId);
+    const tenant = await this.tenantsService.create(body, userId);
     return { ok: true, data: tenant };
   }
 

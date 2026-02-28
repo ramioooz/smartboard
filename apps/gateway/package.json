@@ -17,6 +17,7 @@
     "@nestjs/platform-fastify": "^10.4.0",
     "fastify": "^4.28.0",
     "@nestjs/terminus": "^10.2.3",
+    "@smartboard/nest-common": "workspace:*",
     "@smartboard/shared": "workspace:*",
     "dotenv": "^17.3.1",
     "nestjs-pino": "^4.1.0",
