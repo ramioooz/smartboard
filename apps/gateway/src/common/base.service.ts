@@ -1,15 +1,15 @@
 import { ServiceUnavailableException } from '@nestjs/common';
-import { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../context/request-context.service';
 
 /**
- * Shared HTTP transport for all downstream-service clients.
+ * Shared HTTP transport for all downstream-service services.
  *
- * Concrete clients extend this class, pass their service URL and name via
+ * Concrete services extend this class, pass their service URL and name via
  * `super()`, and get `get / post / patch / put / delete` for free.
  * Context headers (x-request-id, x-user-id, x-tenant-id) are injected
  * automatically from the request-scoped AsyncLocalStorage context.
  */
-export abstract class BaseClient {
+export abstract class BaseService {
   constructor(
     private readonly rcs: RequestContextService,
     private readonly serviceUrl: string,

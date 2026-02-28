@@ -7,12 +7,12 @@ import { AuthGuard } from './common/guards/auth.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { AuthModule } from './routes/auth/auth.module';
-import { TenantsModule } from './routes/tenants/tenants.module';
-import { DatasetsModule } from './routes/datasets/datasets.module';
-import { DashboardsModule } from './routes/dashboards/dashboards.module';
-import { AnalyticsModule } from './routes/analytics/analytics.module';
-import { RealtimeModule } from './routes/realtime/realtime.module';
+import { AuthModule } from './auth/auth.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { DatasetsModule } from './datasets/datasets.module';
+import { DashboardsModule } from './dashboards/dashboards.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { getInstanceId } from '@smartboard/shared';
 
 @Module({
