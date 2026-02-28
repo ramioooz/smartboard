@@ -1,6 +1,6 @@
 import { Controller, Get, Headers, Res, BadRequestException } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { RequestContextService } from '../../context/request-context.service';
+import { RequestContextService } from '../context/request-context.service';
 import { requireEnv } from '@smartboard/shared';
 
 const REALTIME_SERVICE_URL = requireEnv('REALTIME_SERVICE_URL');

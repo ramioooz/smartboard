@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DatasetsClient } from '../../services/clients/datasets.client';
+import { DatasetsService } from './datasets.service';
 import { DatasetsController } from './datasets.controller';
 
 @Module({
   controllers: [DatasetsController],
-  providers: [DatasetsClient],
+  providers: [DatasetsService],
 })
 export class DatasetsModule {}

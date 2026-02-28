@@ -1,18 +1,18 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
-import { TenantsClient } from '../../services/clients/tenants.client';
+import { TenantsService } from './tenants.service';
 
 @Controller('tenants')
 export class TenantsController {
-  constructor(private readonly tenantsClient: TenantsClient) {}
+  constructor(private readonly tenantsService: TenantsService) {}
 
   @Post()
   async create(@Body() body: unknown): Promise<ApiOk<unknown>> {
-    return this.tenantsClient.post<ApiOk<unknown>>('/tenants', body);
+    return this.tenantsService.post<ApiOk<unknown>>('/tenants', body);
   }
 
   @Get()
   async list(): Promise<ApiOk<unknown>> {
-    return this.tenantsClient.get<ApiOk<unknown>>('/tenants');
+    return this.tenantsService.get<ApiOk<unknown>>('/tenants');
   }
 }

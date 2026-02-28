@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { RealtimeClient } from '../../services/clients/realtime.client';
+import { RealtimeService } from './realtime.service';
 import { RealtimeController } from './realtime.controller';
 
 @Module({
   controllers: [RealtimeController],
-  providers: [RealtimeClient],
+  providers: [RealtimeService],
 })
 export class RealtimeModule {}
