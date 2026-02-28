@@ -30,42 +30,27 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IncomingMessage>();
     const ctx = this.rcs.get();
 
-    // x-tenant-id is always passed by the client to select the active tenant.
-    // A user can belong to many tenants and picks one per request.
+    // x-tenant-id is always explicit — a user can belong to many tenants
+    // and selects one per request. Identity comes from the JWT, not a header.
     const tenantId = request.headers['x-tenant-id'] as string | undefined;
     if (tenantId) ctx.tenantId = tenantId;
 
-    // ── DEV_BYPASS_AUTH ────────────────────────────────────────────────────
-    // When true, accept a bare x-user-id header so developers can hit the
-    // gateway with plain cURL without generating a real token.
-    // Production must have DEV_BYPASS_AUTH=false (or unset).
-    const devBypass = process.env['DEV_BYPASS_AUTH'] === 'true';
-    if (devBypass) {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (userId) {
-        ctx.userId = userId;
-        return true;
-      }
-      // No x-user-id in dev bypass — fall through to JWT so clients
-      // that do send a real token still work even in dev mode.
-    }
-
-    // ── JWT verification (stateless) ──────────────────────────────────────
-    // The gateway verifies the signature locally with the shared JWT_SECRET.
-    // No network call to svc-auth — O(1), truly stateless, every replica
-    // can independently verify any request.
+    // ── JWT verification (stateless, identical in dev and prod) ────────────
+    // The gateway verifies the JWT signature locally using the shared
+    // JWT_SECRET. No network call to svc-auth is ever made — O(1), fully
+    // stateless, every gateway replica can verify any request independently.
     //
-    // TODO (future): add a Redis blocklist check for immediate invalidation
-    // on logout, before the token naturally expires.
+    // For local development and Insomnia/cURL testing, generate a long-lived
+    // dev token once with:
+    //   node scripts/gen-dev-token.mjs
+    //
+    // TODO (future): add a Redis JTI blocklist check here for immediate
+    // token invalidation on logout before the token naturally expires.
     const authHeader = request.headers['authorization'] as string | undefined;
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
 
     if (!token) {
-      throw new UnauthorizedException(
-        devBypass
-          ? 'Missing x-user-id header or Authorization: Bearer <token>'
-          : 'Missing Authorization: Bearer <token>',
-      );
+      throw new UnauthorizedException('Missing Authorization: Bearer <token>');
     }
 
     try {
