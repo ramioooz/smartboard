@@ -19,7 +19,19 @@ export interface DatasetIngestPayload {
   fileType: 'csv' | 'json';
 }
 
-// ─── Event Names (Redis pub/sub channels) ─────────────────────────────────────
+// ─── Redis pub/sub channel ────────────────────────────────────────────────────
+
+/**
+ * Single fan-out channel for all platform events.
+ *
+ * Every service that publishes events writes to this one channel.
+ * Every service that subscribes (svc-realtime) subscribes to this one channel.
+ * Adding a new event type only requires updating EVENT_NAMES and SmartboardEvent —
+ * svc-realtime and the worker never need to change their channel config.
+ */
+export const EVENT_CHANNEL = 'smartboard:events';
+
+// ─── Event Names (discriminator values in the payload) ────────────────────────
 
 export const EVENT_NAMES = {
   DATASET_READY: 'dataset.ready',
