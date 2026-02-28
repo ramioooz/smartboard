@@ -19,6 +19,7 @@
     "@nestjs/platform-fastify": "^10.4.0",
     "@nestjs/terminus": "^10.2.3",
     "@prisma/client": "^5.16.0",
+    "@smartboard/nest-common": "workspace:*",
     "@smartboard/shared": "workspace:*",
     "dotenv": "^17.3.1",
     "nestjs-pino": "^4.1.0",

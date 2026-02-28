@@ -47,6 +47,9 @@ importers:
       '@nestjs/terminus':
         specifier: ^10.2.3
         version: 10.3.0(@nestjs/common@10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.22(@nestjs/common@10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(@prisma/client@5.22.0(prisma@5.22.0))(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -108,6 +111,9 @@ importers:
       '@prisma/client':
         specifier: ^5.16.0
         version: 5.22.0(prisma@5.22.0)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -169,6 +175,9 @@ importers:
       '@prisma/client':
         specifier: ^5.16.0
         version: 5.22.0(prisma@5.22.0)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -230,6 +239,9 @@ importers:
       '@prisma/client':
         specifier: ^5.16.0
         version: 5.22.0(prisma@5.22.0)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -291,6 +303,9 @@ importers:
       '@prisma/client':
         specifier: ^5.16.0
         version: 5.22.0(prisma@5.22.0)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -419,6 +434,9 @@ importers:
       '@prisma/client':
         specifier: ^5.16.0
         version: 5.22.0(prisma@5.22.0)
+      '@smartboard/nest-common':
+        specifier: workspace:*
+        version: link:../../packages/nest-common
       '@smartboard/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -638,6 +656,24 @@ importers:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
+
+  packages/nest-common:
+    devDependencies:
+      '@nestjs/common':
+        specifier: ^10.4.0
+        version: 10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@smartboard/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.34
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
 
   packages/shared:
     dependencies:

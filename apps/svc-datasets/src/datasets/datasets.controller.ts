@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Headers, HttpCode, NotFoundException, Param, Post, Query } from '@nestjs/common';
-import type { ApiOk, PagedResult } from '@smartboard/shared';
+import type { ApiOk, CreateDataset, Pagination, PagedResult } from '@smartboard/shared';
 import { CreateDatasetSchema, PaginationSchema } from '@smartboard/shared';
+import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { Dataset } from '@prisma/client';
 import { DatasetsService } from './datasets.service';
 import type { CreateDatasetResult } from './datasets.service';
@@ -12,23 +13,20 @@ export class DatasetsController {
   @Post()
   @HttpCode(201)
   async create(
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(CreateDatasetSchema)) body: CreateDataset,
     @Headers('x-tenant-id') tenantId: string,
   ): Promise<ApiOk<CreateDatasetResult>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const parsed = CreateDatasetSchema.safeParse(body);
-    if (!parsed.success) throw new BadRequestException(parsed.error.flatten().fieldErrors);
-    const result = await this.datasetsService.create(parsed.data, tenantId);
+    const result = await this.datasetsService.create(body, tenantId);
     return { ok: true, data: result };
   }
 
   @Get()
   async list(
     @Headers('x-tenant-id') tenantId: string,
-    @Query() query: Record<string, string>,
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: Pagination,
   ): Promise<ApiOk<PagedResult<Dataset>>> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
-    const pagination = PaginationSchema.parse(query);
     const result = await this.datasetsService.listForTenant(tenantId, pagination);
     return { ok: true, data: result };
   }
