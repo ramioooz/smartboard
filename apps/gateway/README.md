@@ -3,7 +3,8 @@
 NestJS API edge layer — the single entry point for all web client requests.
 
 ## Responsibilities
-- AuthGuard → TenantGuard global guard chain
+- **ThrottlerBehindProxyGuard** → **AuthGuard** → **TenantGuard** global guard chain
+- Rate limiting: Redis-backed `@nestjs/throttler` (Layer 2) on top of nginx limits (Layer 1)
 - AsyncLocalStorage RequestContext (requestId, userId, tenantId)
 - Request-ID propagation (x-request-id header in/out + downstream)
 - Pino structured logging with requestId on every line
@@ -25,11 +26,31 @@ src/
   dashboards/   dashboards.module.ts  dashboards.controller.ts  dashboards.service.ts
   realtime/     realtime.module.ts  realtime.controller.ts  realtime.service.ts
   common/       base.service.ts  guards/  filters/  decorators/  interceptors/
+    guards/
+      auth.guard.ts         — JWT verification, hydrates RequestContext
+      tenant.guard.ts       — tenant membership validation
+      throttler.guard.ts    — Fastify-aware proxy guard (reads X-Forwarded-For)
   context/      request-context.module.ts (AsyncLocalStorage @Global)
   health/       health.module.ts  health.controller.ts
   app.module.ts
   main.ts
 ```
+
+## Rate Limiting
+
+Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for the full picture.
+
+**Gateway layer (Layer 2):**
+
+| Throttler | Default limit | Auth login override |
+|-----------|--------------|---------------------|
+| `short`   | 20 / 1 s     | 5 / 15 min          |
+| `medium`  | 300 / 1 min  | 10 / 15 min         |
+| `long`    | 5 000 / 1 hr | 30 / 24 hr          |
+
+- Storage: Redis (`gw:throttle:` key prefix) — shared across all replicas
+- Tracker: last entry in `X-Forwarded-For` (real client IP set by nginx)
+- Health endpoints: `@SkipThrottle()` — never rate limited
 
 ## Key Endpoints
 | Method | Path | Description |
@@ -58,9 +79,9 @@ src/
 | `ANALYTICS_SERVICE_URL` | svc-analytics base URL |
 | `DASHBOARDS_SERVICE_URL` | svc-dashboards base URL |
 | `REALTIME_SERVICE_URL` | svc-realtime base URL |
+| `REDIS_URL` | Redis connection URL — used by ThrottlerModule for shared rate-limit counters |
 | `JWT_SECRET` | JWT signing secret |
 | `SESSION_SECRET` | Cookie session secret |
-| `DEV_BYPASS_AUTH` | Skip JWT — pass x-user-id + x-tenant-id headers directly (default: false) |
 | `LOG_LEVEL` | Pino log level (default: info) |
 | `PORT` | HTTP port (default: 4000) |
 
