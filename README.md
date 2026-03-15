@@ -346,6 +346,47 @@ pnpm db:generate
 
 ---
 
+## Rate Limiting
+
+Implemented as two complementary layers for defense-in-depth:
+
+### Layer 1 — Nginx (IP-based, edge)
+
+Blocks floods before requests ever reach the application:
+
+| Zone        | Limit      | Burst | Applies to                        |
+|-------------|------------|-------|-----------------------------------|
+| `global_rl` | 100 req/s  | 200   | All API routes (`/`)              |
+| `auth_rl`   | 10 req/min | 5     | Auth routes (`/api/auth/*`)       |
+| *(none)*    | —          | —     | `/health/*`, `/api/realtime/*`    |
+
+Returns **429 Too Many Requests** when the burst is exhausted.
+
+### Layer 2 — Gateway (Redis-backed, per IP, shared across replicas)
+
+Fine-grained per-route limits enforced by `@nestjs/throttler` with Redis storage. Counters are shared across all gateway replicas so scaling to N instances does not multiply the limits.
+
+| Throttler | Limit     | TTL    | Applies to                      |
+|-----------|-----------|--------|---------------------------------|
+| `short`   | 20 req    | 1 s    | All routes (global default)     |
+| `medium`  | 300 req   | 1 min  | All routes (global default)     |
+| `long`    | 5 000 req | 1 hr   | All routes (global default)     |
+| `short`   | 5 req     | 15 min | `POST /api/auth/login` override |
+| `medium`  | 10 req    | 15 min | `POST /api/auth/login` override |
+| `long`    | 30 req    | 24 hr  | `POST /api/auth/login` override |
+| *(skip)*  | —         | —      | `/health/*`                     |
+
+Returns **429** with `Retry-After`, `X-RateLimit-Limit-*`, and `X-RateLimit-Remaining-*` headers.
+
+### Testing Rate Limits
+
+See [`tests/rate-limit/README.md`](tests/rate-limit/README.md) for k6 test scripts covering:
+- Global API limit verification
+- Auth brute-force protection
+- Redis shared counter across replicas
+
+---
+
 ## Future Improvements
 
 - **Contract testing** — Pact or similar for service contracts

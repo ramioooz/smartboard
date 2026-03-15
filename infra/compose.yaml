@@ -308,6 +308,8 @@ services:
     image: smartboard-gateway:local
     restart: unless-stopped
     depends_on:
+      redis:
+        condition: service_healthy
       svc-auth:
         condition: service_healthy
       svc-tenants:
@@ -326,6 +328,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       SESSION_SECRET: ${SESSION_SECRET}
       JWT_SECRET: ${JWT_SECRET}
+      # Redis — used by ThrottlerModule to share rate-limit counters across replicas
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       # Service discovery — docker compose DNS
       AUTH_SERVICE_URL: http://svc-auth:4010
       TENANTS_SERVICE_URL: http://svc-tenants:4020

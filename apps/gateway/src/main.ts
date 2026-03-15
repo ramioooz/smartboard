@@ -23,7 +23,10 @@ const PORT = requireEnv('PORT');
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    // trustProxy: true — tells Fastify to parse X-Forwarded-For set by nginx
+    // so that req.ips[] contains the real client IP chain (needed for accurate
+    // per-IP rate limiting in ThrottlerBehindProxyGuard).
+    new FastifyAdapter({ trustProxy: true }),
     { bufferLogs: true },
   );
   app.useLogger(app.get(Logger));
