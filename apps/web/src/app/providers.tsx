@@ -3,8 +3,15 @@
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import type { UserPreferences } from '../lib/auth';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  initialTheme,
+}: {
+  children: React.ReactNode;
+  initialTheme: UserPreferences['theme'];
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -18,7 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
         attribute="data-theme"
-        defaultTheme="light"
+        defaultTheme={initialTheme}
         enableSystem={false}
         storageKey="sb-theme"
       >
