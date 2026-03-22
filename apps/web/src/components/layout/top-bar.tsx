@@ -1,15 +1,16 @@
 'use client';
 
 import { useUser } from '../../hooks/useUser';
-import { useScheme } from '../../hooks/useScheme';
+import { usePersistedAppearance } from '../../hooks/usePersistedAppearance';
 
 export function TopBar() {
   const { data: user } = useUser();
 
-  // Sync data-scheme from user preferences on load
-  useScheme(
-    (user?.preferences as { scheme?: string } | undefined)?.scheme,
-  );
+  const preferences = user?.preferences as
+    | { theme?: 'light' | 'dark'; scheme?: 'mint' | 'warm' | 'neon' | 'ember' }
+    | undefined;
+
+  usePersistedAppearance(preferences?.theme, preferences?.scheme);
 
   const initial = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? '?';
 

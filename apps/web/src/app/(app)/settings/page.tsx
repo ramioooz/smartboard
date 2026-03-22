@@ -7,6 +7,7 @@ import { ThemePicker } from '../../../components/settings/theme-picker';
 import { useUser, useUpdatePreferences } from '../../../hooks/useUser';
 import { useScheme } from '../../../hooks/useScheme';
 import type { UserPreferences } from '../../../lib/auth';
+import { writeAppearanceCookies } from '../../../lib/appearance';
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -58,6 +59,7 @@ export default function SettingsPage() {
         scheme: themeScheme.scheme,
         language,
       });
+      writeAppearanceCookies(themeScheme.theme, themeScheme.scheme);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
     } catch {
