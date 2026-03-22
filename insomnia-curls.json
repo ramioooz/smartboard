@@ -1,0 +1,719 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-22T12:00:00.000Z",
+  "__export_source": "codex.smartboard",
+  "resources": [
+    {
+      "_id": "wrk_smartboard_local",
+      "_type": "workspace",
+      "parentId": null,
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Smartboard Local Docker",
+      "description": "Local Smartboard workflow for Docker. Run login first, then create tenant and dataset. IDs and token are stored automatically for later requests.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_smartboard_local",
+      "_type": "environment",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1",
+        "web_url": "http://127.0.0.1:3000",
+        "token": "",
+        "tenant_id": "",
+        "dataset_id": "",
+        "dashboard_id": "",
+        "upload_url": "",
+        "upload_file_path": "/tmp/sample.csv",
+        "metric": "revenue",
+        "from": "2024-01-01T00:00:00.000Z",
+        "to": "2024-12-31T23:59:59.000Z",
+        "bucket": "hour"
+      }
+    },
+    {
+      "_id": "env_smartboard_local_dev",
+      "_type": "environment",
+      "parentId": "env_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "local - dev",
+      "data": {
+        "base_url": "http://127.0.0.1",
+        "token": "",
+        "tenant_id": "",
+        "dataset_id": "",
+        "dashboard_id": "",
+        "upload_url": "",
+        "upload_file_path": "/tmp/sample.csv",
+        "metric": "revenue",
+        "from": "2024-01-01T00:00:00.000Z",
+        "to": "2024-12-31T23:59:59.000Z",
+        "bucket": "hour"
+      }
+    },
+    {
+      "_id": "env_smartboard_prod_aws",
+      "_type": "environment",
+      "parentId": "env_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "production - aws",
+      "data": {
+        "base_url": "https://your-api-domain.com",
+        "token": "",
+        "tenant_id": "",
+        "dataset_id": "",
+        "dashboard_id": "",
+        "upload_url": "",
+        "upload_file_path": "/tmp/sample.csv",
+        "metric": "revenue",
+        "from": "2024-01-01T00:00:00.000Z",
+        "to": "2024-12-31T23:59:59.000Z",
+        "bucket": "hour"
+      }
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Health",
+      "description": ""
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Auth",
+      "description": ""
+    },
+    {
+      "_id": "fld_tenants",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Tenants",
+      "description": ""
+    },
+    {
+      "_id": "fld_datasets",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Datasets",
+      "description": ""
+    },
+    {
+      "_id": "fld_dashboards",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Dashboards",
+      "description": ""
+    },
+    {
+      "_id": "fld_analytics",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Analytics",
+      "description": ""
+    },
+    {
+      "_id": "fld_realtime",
+      "_type": "request_group",
+      "parentId": "wrk_smartboard_local",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Realtime",
+      "description": ""
+    },
+    {
+      "_id": "req_health_live",
+      "_type": "request",
+      "parentId": "fld_health",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Health Live",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health/live",
+      "description": "Public liveness check.",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_health_ready",
+      "_type": "request",
+      "parentId": "fld_health",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Health Ready",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health/ready",
+      "description": "Public readiness check.",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "DEV Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "description": "Run first. Stores `token` automatically.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"dev@local\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "afterResponseScript": "if (insomnia.response.code === 200) {\n  const jsonBody = insomnia.response.json();\n  const token = jsonBody?.data?.token;\n  if (token) insomnia.environment.set('token', token);\n}\n",
+      "metaSortKey": -800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_auth_me",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Get Me",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/me",
+      "description": "Uses `token`.",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -700,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_auth_patch_prefs",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Update Preferences",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/auth/me/preferences",
+      "description": "Uses `token`.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"theme\": \"light\",\n  \"scheme\": \"mint\",\n  \"language\": \"en\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -600,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_tenant_create",
+      "_type": "request",
+      "parentId": "fld_tenants",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Create Tenant",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/tenants",
+      "description": "Uses `token`. Stores `tenant_id` automatically.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Acme Workspace\",\n  \"slug\": \"acme-workspace\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "afterResponseScript": "if (insomnia.response.code === 201) {\n  const jsonBody = insomnia.response.json();\n  const tenantId = jsonBody?.data?.id;\n  if (tenantId) insomnia.environment.set('tenant_id', tenantId);\n}\n",
+      "metaSortKey": -500,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_tenant_list",
+      "_type": "request",
+      "parentId": "fld_tenants",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "List Tenants",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tenants",
+      "description": "Uses `token`.",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -400,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dataset_create",
+      "_type": "request",
+      "parentId": "fld_datasets",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Create Dataset",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/datasets",
+      "description": "Uses `token` and `tenant_id`. Stores `dataset_id` and `upload_url` automatically.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Revenue Q1\",\n  \"description\": \"Sample CSV dataset\",\n  \"fileType\": \"csv\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "afterResponseScript": "if (insomnia.response.code === 201) {\n  const jsonBody = insomnia.response.json();\n  const datasetId = jsonBody?.data?.dataset?.id;\n  const uploadUrl = jsonBody?.data?.uploadUrl;\n  if (datasetId) insomnia.environment.set('dataset_id', datasetId);\n  if (uploadUrl) insomnia.environment.set('upload_url', uploadUrl);\n}\n",
+      "metaSortKey": -300,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dataset_list",
+      "_type": "request",
+      "parentId": "fld_datasets",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "List Datasets",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/datasets?page=1&limit=50",
+      "description": "Uses `token` and `tenant_id`.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -200,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dataset_upload_presigned",
+      "_type": "request",
+      "parentId": "fld_datasets",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Upload Dataset File (Presigned PUT)",
+      "method": "PUT",
+      "url": "{{ _.upload_url }}",
+      "description": "Run after `Create Dataset`. Uses `upload_url`. Set `upload_file_path` to a real local file.",
+      "body": {
+        "mimeType": "text/csv",
+        "fileName": "{{ _.upload_file_path }}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "text/csv"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -150,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": false,
+      "settingRebuildPath": false,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dataset_get",
+      "_type": "request",
+      "parentId": "fld_datasets",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Get Dataset",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/datasets/{{ _.dataset_id }}",
+      "description": "Uses `token`, `tenant_id`, and `dataset_id`.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dashboard_create",
+      "_type": "request",
+      "parentId": "fld_dashboards",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Create Dashboard",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/dashboards",
+      "description": "Uses `token` and `tenant_id`. Stores `dashboard_id` automatically.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Executive Dashboard\",\n  \"description\": \"Main dashboard for local testing\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "afterResponseScript": "if (insomnia.response.code === 201) {\n  const jsonBody = insomnia.response.json();\n  const dashboardId = jsonBody?.data?.id;\n  if (dashboardId) insomnia.environment.set('dashboard_id', dashboardId);\n}\n",
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dashboard_list",
+      "_type": "request",
+      "parentId": "fld_dashboards",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "List Dashboards",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/dashboards?page=1&limit=50",
+      "description": "Uses `token` and `tenant_id`.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 100,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dashboard_get",
+      "_type": "request",
+      "parentId": "fld_dashboards",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Get Dashboard",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/dashboards/{{ _.dashboard_id }}",
+      "description": "Uses `token`, `tenant_id`, and `dashboard_id`.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 200,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dashboard_patch",
+      "_type": "request",
+      "parentId": "fld_dashboards",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Update Dashboard Metadata",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/dashboards/{{ _.dashboard_id }}",
+      "description": "Uses `token`, `tenant_id`, and `dashboard_id`.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Executive Dashboard v2\",\n  \"description\": \"Updated from Insomnia\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 300,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_dashboard_layout",
+      "_type": "request",
+      "parentId": "fld_dashboards",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Save Dashboard Layout",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/dashboards/{{ _.dashboard_id }}/layout",
+      "description": "Uses `token`, `tenant_id`, `dashboard_id`, and `dataset_id`.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"panels\": [\n    {\n      \"id\": \"11111111-1111-4111-8111-111111111111\",\n      \"type\": \"text\",\n      \"title\": \"Welcome\",\n      \"config\": {\n        \"markdown\": \"# Smartboard\\nLocal test panel\"\n      },\n      \"layout\": {\n        \"i\": \"11111111-1111-4111-8111-111111111111\",\n        \"x\": 0,\n        \"y\": 0,\n        \"w\": 6,\n        \"h\": 3\n      }\n    },\n    {\n      \"id\": \"22222222-2222-4222-8222-222222222222\",\n      \"type\": \"timeseries\",\n      \"title\": \"Revenue\",\n      \"datasetId\": \"{{ _.dataset_id }}\",\n      \"config\": {\n        \"metric\": \"revenue\",\n        \"bucket\": \"hour\"\n      },\n      \"layout\": {\n        \"i\": \"22222222-2222-4222-8222-222222222222\",\n        \"x\": 6,\n        \"y\": 0,\n        \"w\": 6,\n        \"h\": 4\n      }\n    }\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 400,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_analytics_timeseries",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Timeseries",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/analytics/timeseries?datasetId={{ _.dataset_id }}&metric={{ _.metric }}&from={{ _.from }}&to={{ _.to }}&bucket={{ _.bucket }}",
+      "description": "Uses `token`, `tenant_id`, and `dataset_id`.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 500,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_realtime_stream",
+      "_type": "request",
+      "parentId": "fld_realtime",
+      "modified": 1774180800000,
+      "created": 1774180800000,
+      "name": "Realtime Stream",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/realtime/stream",
+      "description": "Uses `token` and `tenant_id`. SSE request stays open.",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "text/event-stream"
+        },
+        {
+          "name": "x-tenant-id",
+          "value": "{{ _.tenant_id }}"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 600,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}
