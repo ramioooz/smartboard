@@ -82,3 +82,33 @@
   --ring: #22c55e;
   --shadow: 0 10px 30px rgba(16, 185, 129, 0.08);
 }
+
+/* next-themes sets data-theme before user preferences load. Provide a usable
+   default scheme so CSS variables exist during first paint. */
+:root[data-theme="light"]:not([data-scheme]) {
+  --bg: #f6f9f7;
+  --surface: #ffffff;
+  --surface2: #eef4f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #16a34a;
+  --primaryFg: #ffffff;
+  --accent: #4ade80;
+  --ring: #22c55e;
+  --shadow: 0 10px 30px rgba(16, 185, 129, 0.08);
+}
+
+:root[data-theme="dark"]:not([data-scheme]) {
+  --bg: #0b0b0c;
+  --surface: #111113;
+  --surface2: #18181b;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --border: #27272a;
+  --primary: #a3ff12;
+  --primaryFg: #020617;
+  --accent: #8b5cf6;
+  --ring: #84cc16;
+  --shadow: 0 0 40px rgba(163, 255, 18, 0.18);
+}
