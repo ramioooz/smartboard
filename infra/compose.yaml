@@ -367,6 +367,8 @@ services:
     build:
       context: ../
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://127.0.0.1}
     image: smartboard-web:local
     restart: unless-stopped
     depends_on:
