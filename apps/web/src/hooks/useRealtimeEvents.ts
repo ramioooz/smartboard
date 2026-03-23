@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { getTenantId } from '@/lib/tenant';
 import { getToken } from '@/lib/storage';
 import { getGatewayUrl } from '@/lib/env';
 
@@ -20,11 +19,10 @@ interface DatasetEvent {
  * Opens an SSE connection to the gateway realtime stream and
  * invalidates React Query caches when dataset processing completes.
  */
-export function useRealtimeEvents(): void {
+export function useRealtimeEvents(tenantId: string | null): void {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const tenantId = getTenantId();
     const token = getToken();
     if (!tenantId || !token) return;
 
@@ -84,5 +82,5 @@ export function useRealtimeEvents(): void {
     return () => {
       controller.abort();
     };
-  }, [queryClient]);
+  }, [queryClient, tenantId]);
 }
