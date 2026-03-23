@@ -8,3 +8,8 @@ export function getTenantId(): string | null {
 export function setTenantId(id: string): void {
   localStorage.setItem(STORAGE_KEY, id);
 }
+
+export function clearTenantId(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_KEY);
+}
