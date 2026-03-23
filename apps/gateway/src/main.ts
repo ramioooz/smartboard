@@ -19,6 +19,22 @@ process.on('uncaughtException', (err: Error) => {
 });
 
 const PORT = requireEnv('PORT');
+const DEFAULT_CORS_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+function getCorsOrigins(): string[] {
+  const raw = process.env['CORS_ORIGINS'];
+  if (!raw) return DEFAULT_CORS_ORIGINS;
+
+  const parsed = raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return parsed.length > 0 ? parsed : DEFAULT_CORS_ORIGINS;
+}
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -31,6 +47,10 @@ async function bootstrap() {
   );
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
+  app.enableCors({
+    origin: getCorsOrigins(),
+    credentials: true,
+  });
   app.setGlobalPrefix('api', {
     exclude: ['health/live', 'health/ready'],
   });

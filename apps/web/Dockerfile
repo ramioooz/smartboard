@@ -18,6 +18,9 @@ FROM node:20-alpine AS builder
 RUN npm install -g pnpm@10.28.0
 WORKDIR /app
 
+ARG NEXT_PUBLIC_GATEWAY_URL
+ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
