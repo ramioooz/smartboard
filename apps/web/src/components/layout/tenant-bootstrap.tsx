@@ -136,12 +136,6 @@ function SelectionState({
   );
 }
 
-function getValidStoredTenant(tenants: Tenant[]): Tenant | null {
-  const storedId = getTenantId();
-  if (!storedId) return null;
-  return tenants.find((tenant) => tenant.id === storedId) ?? null;
-}
-
 export function useTenant() {
   const ctx = useContext(TenantContext);
   if (!ctx) {
@@ -154,9 +148,11 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const qc = useQueryClient();
   const { data: user, isLoading: isUserLoading } = useUser();
   const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>('loading');
+  const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectionState('loading');
+    setActiveTenantId(getTenantId());
   }, [user?.id]);
 
   const tenantsQuery = useQuery({
@@ -170,6 +166,7 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
     mutationFn: createTenant,
     onSuccess: (tenant) => {
       setTenantId(tenant.id);
+      setActiveTenantId(tenant.id);
       clearTenantScopedQueries(qc);
       qc.setQueryData(['tenants'], (previous: PagedResult<Tenant> | undefined) => {
         if (!previous) {
@@ -186,20 +183,22 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   });
 
   const tenants = tenantsQuery.data?.items ?? [];
-  const validStoredTenant = useMemo(() => getValidStoredTenant(tenants), [tenants]);
+  const validStoredTenant = useMemo(() => {
+    if (!activeTenantId) return null;
+    return tenants.find((tenant) => tenant.id === activeTenantId) ?? null;
+  }, [activeTenantId, tenants]);
   const currentTenant = useMemo(() => {
-    if (validStoredTenant) return validStoredTenant;
-    const storedId = getTenantId();
-    if (!storedId) return null;
-    return tenants.find((tenant) => tenant.id === storedId) ?? null;
-  }, [tenants, validStoredTenant]);
+    if (!activeTenantId) return null;
+    return tenants.find((tenant) => tenant.id === activeTenantId) ?? null;
+  }, [activeTenantId, tenants]);
 
   function selectTenant(tenantId: string) {
-    if (getTenantId() === tenantId) {
+    if (activeTenantId === tenantId) {
       setSelectionState('ready');
       return;
     }
     setTenantId(tenantId);
+    setActiveTenantId(tenantId);
     clearTenantScopedQueries(qc);
     setSelectionState('ready');
   }
@@ -209,6 +208,7 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
 
     if (tenants.length === 0) {
       clearTenantId();
+      setActiveTenantId(null);
       setSelectionState('ready');
       return;
     }
@@ -222,12 +222,14 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
       const onlyTenant = tenants[0];
       if (!onlyTenant) return;
       setTenantId(onlyTenant.id);
+      setActiveTenantId(onlyTenant.id);
       clearTenantScopedQueries(qc);
       setSelectionState('ready');
       return;
     }
 
     clearTenantId();
+    setActiveTenantId(null);
     clearTenantScopedQueries(qc);
     setSelectionState('needs-selection');
   }, [user, tenantsQuery.isLoading, tenants.length, tenants, validStoredTenant, qc]);
