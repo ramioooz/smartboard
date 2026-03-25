@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, CardContent, CardHeader } from '@smartboard/ui';
 import type { PagedResult } from '@smartboard/shared';
@@ -32,6 +32,22 @@ function LoadingState({ label }: { label: string }) {
       </Card>
     </div>
   );
+}
+
+interface TenantContextValue {
+  tenants: Tenant[];
+  currentTenant: Tenant;
+  selectTenant: (tenantId: string) => void;
+}
+
+const TenantContext = createContext<TenantContextValue | null>(null);
+
+function clearTenantScopedQueries(qc: ReturnType<typeof useQueryClient>) {
+  qc.removeQueries({ queryKey: ['dashboards'] });
+  qc.removeQueries({ queryKey: ['dashboard'] });
+  qc.removeQueries({ queryKey: ['datasets'] });
+  qc.removeQueries({ queryKey: ['dataset'] });
+  qc.removeQueries({ queryKey: ['timeseries'] });
 }
 
 function OnboardingState({
@@ -86,19 +102,57 @@ function OnboardingState({
   );
 }
 
-function getValidStoredTenant(tenants: Tenant[]): Tenant | null {
-  const storedId = getTenantId();
-  if (!storedId) return null;
-  return tenants.find((tenant) => tenant.id === storedId) ?? null;
+function SelectionState({
+  tenants,
+  onSelect,
+}: {
+  tenants: Tenant[];
+  onSelect: (tenantId: string) => void;
+}) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <h1 className="text-lg font-semibold text-[var(--text)]">Choose a workspace</h1>
+          <p className="text-sm text-[var(--muted)]">
+            Select the workspace you want to use for dashboards, datasets, and realtime updates.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          {tenants.map((tenant) => (
+            <button
+              key={tenant.id}
+              type="button"
+              onClick={() => onSelect(tenant.id)}
+              className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-colors hover:border-[var(--primary)] hover:bg-[var(--surface2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+            >
+              <p className="font-medium text-[var(--text)]">{tenant.name}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">{tenant.slug}</p>
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function useTenant() {
+  const ctx = useContext(TenantContext);
+  if (!ctx) {
+    throw new Error('useTenant must be used within TenantBootstrap');
+  }
+  return ctx;
 }
 
 export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const qc = useQueryClient();
   const { data: user, isLoading: isUserLoading } = useUser();
-  const [selectionReady, setSelectionReady] = useState(false);
+  const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>('loading');
+  const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
 
   useEffect(() => {
-    setSelectionReady(false);
+    setSelectionState('loading');
+    setActiveTenantId(getTenantId());
   }, [user?.id]);
 
   const tenantsQuery = useQuery({
@@ -112,6 +166,8 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
     mutationFn: createTenant,
     onSuccess: (tenant) => {
       setTenantId(tenant.id);
+      setActiveTenantId(tenant.id);
+      clearTenantScopedQueries(qc);
       qc.setQueryData(['tenants'], (previous: PagedResult<Tenant> | undefined) => {
         if (!previous) {
           return { items: [tenant], total: 1, page: 1, limit: 50, hasMore: false };
@@ -122,40 +178,67 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
           total: previous.total + 1,
         };
       });
-      setSelectionReady(true);
+      setSelectionState('ready');
     },
   });
 
   const tenants = tenantsQuery.data?.items ?? [];
-  const validStoredTenant = useMemo(() => getValidStoredTenant(tenants), [tenants]);
+  const validStoredTenant = useMemo(() => {
+    if (!activeTenantId) return null;
+    return tenants.find((tenant) => tenant.id === activeTenantId) ?? null;
+  }, [activeTenantId, tenants]);
+  const currentTenant = useMemo(() => {
+    if (!activeTenantId) return null;
+    return tenants.find((tenant) => tenant.id === activeTenantId) ?? null;
+  }, [activeTenantId, tenants]);
+
+  function selectTenant(tenantId: string) {
+    if (activeTenantId === tenantId) {
+      setSelectionState('ready');
+      return;
+    }
+    setTenantId(tenantId);
+    setActiveTenantId(tenantId);
+    clearTenantScopedQueries(qc);
+    setSelectionState('ready');
+  }
 
   useEffect(() => {
     if (!user || tenantsQuery.isLoading) return;
 
     if (tenants.length === 0) {
       clearTenantId();
-      setSelectionReady(true);
+      setActiveTenantId(null);
+      setSelectionState('ready');
       return;
     }
 
     if (validStoredTenant) {
-      setSelectionReady(true);
+      setSelectionState('ready');
       return;
     }
 
-    const firstTenant = tenants[0];
-    if (!firstTenant) return;
+    if (tenants.length === 1) {
+      const onlyTenant = tenants[0];
+      if (!onlyTenant) return;
+      setTenantId(onlyTenant.id);
+      setActiveTenantId(onlyTenant.id);
+      clearTenantScopedQueries(qc);
+      setSelectionState('ready');
+      return;
+    }
 
-    // Phase 1 fallback: auto-select the first available tenant if there is no valid stored choice.
-    setTenantId(firstTenant.id);
-    setSelectionReady(true);
-  }, [user, tenantsQuery.isLoading, tenants.length, tenants, validStoredTenant]);
+    clearTenantId();
+    setActiveTenantId(null);
+    clearTenantScopedQueries(qc);
+    setSelectionState('needs-selection');
+  }, [user, tenantsQuery.isLoading, tenants.length, tenants, validStoredTenant, qc]);
 
   if (isUserLoading) {
     return <LoadingState label="Loading account…" />;
   }
 
-  if (tenantsQuery.isLoading || (!selectionReady && !!user)) {
+  if (tenantsQuery.isLoading || (selectionState === 'loading' && !!user)) {
     return <LoadingState label="Loading workspace…" />;
   }
 
@@ -178,5 +261,23 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  if (selectionState === 'needs-selection') {
+    return <SelectionState tenants={tenants} onSelect={selectTenant} />;
+  }
+
+  if (!currentTenant) {
+    return <LoadingState label="Loading workspace…" />;
+  }
+
+  return (
+    <TenantContext.Provider
+      value={{
+        tenants,
+        currentTenant,
+        selectTenant,
+      }}
+    >
+      {children}
+    </TenantContext.Provider>
+  );
 }

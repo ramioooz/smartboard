@@ -1,17 +1,22 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTenant } from '@/components/layout/tenant-bootstrap';
 import { createDataset, listDatasets, uploadFile } from '@/lib/datasets';
 
 export function useDatasets() {
+  const { currentTenant } = useTenant();
+
   return useQuery({
-    queryKey: ['datasets'],
+    queryKey: ['datasets', currentTenant.id],
     queryFn: () => listDatasets(),
+    enabled: !!currentTenant.id,
   });
 }
 
 export function useCreateAndUploadDataset() {
   const queryClient = useQueryClient();
+  const { currentTenant } = useTenant();
 
   return useMutation({
     mutationFn: async ({
@@ -34,7 +39,7 @@ export function useCreateAndUploadDataset() {
       return dataset;
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['datasets'] });
+      void queryClient.invalidateQueries({ queryKey: ['datasets', currentTenant.id] });
     },
   });
 }
