@@ -55,7 +55,10 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 ## Key Endpoints
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/auth/login` | Login (DEV bypass or real auth) |
+| `POST` | `/auth/session` | Browser session bootstrap (local dev bypass today, OIDC-backed later) |
+| `POST` | `/auth/login` | Legacy local-only dev bypass |
+| `POST` | `/auth/session/refresh` | Rotate refresh token and renew cookies |
+| `POST` | `/auth/logout` | Revoke current session and clear auth cookies |
 | `GET` | `/auth/me` | Current user |
 | `PATCH` | `/auth/me/preferences` | Update user preferences |
 | `GET/POST` | `/tenants` | List/create tenants |

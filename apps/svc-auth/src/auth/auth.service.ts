@@ -25,12 +25,14 @@ export class AuthService {
   ) {}
 
   async login(email: string, metadata?: SessionMetadata): Promise<LoginResult> {
+    this.assertDevBypassEnabled();
     const identity = this.resolveDevIdentity(email);
     return this.createSessionFromIdentity(identity, metadata);
   }
 
   async createSession(metadata?: SessionMetadata): Promise<LoginResult> {
-    const email = process.env['DEV_AUTH_EMAIL'] ?? 'dev@local';
+    this.assertDevBypassEnabled();
+    const email = process.env['DEV_DEFAULT_EMAIL'] ?? 'dev@local';
     const identity = this.resolveDevIdentity(email);
     return this.createSessionFromIdentity(identity, metadata);
   }
@@ -119,5 +121,11 @@ export class AuthService {
       email,
       name: email.split('@')[0],
     };
+  }
+
+  private assertDevBypassEnabled(): void {
+    if (process.env['DEV_BYPASS_AUTH'] !== 'true') {
+      throw new UnauthorizedException('Interactive login required');
+    }
   }
 }
