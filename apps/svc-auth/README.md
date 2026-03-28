@@ -4,10 +4,10 @@ Authentication and user management service.
 
 ## Responsibilities
 - User record storage (auth schema)
-- Session / JWT issuance and validation
+- Session / JWT issuance
 - Microsoft OIDC token exchange
 - User preferences persistence (theme, scheme)
-- Refresh token management
+- Refresh token rotation and revocation publishing
 
 ## Port
 `4010`
@@ -33,8 +33,8 @@ Authentication and user management service.
 | `DATABASE_URL` | Points to `auth` schema |
 | `REDIS_URL` | Redis connection URL used to publish revoked session IDs |
 | `JWT_SECRET` | JWT signing key |
-| `DEV_BYPASS_AUTH` | Enables the local dev auth shortcut |
-| `DEV_DEFAULT_EMAIL` | Default local dev identity for `/auth/session` |
+| `DEV_BYPASS_AUTH` | Enables backend-owned local dev session bootstrap |
+| `DEV_DEFAULT_EMAIL` | Default local dev identity used by `/auth/session` when bypass is enabled |
 | `MICROSOFT_CLIENT_ID` | Azure App Registration client ID |
 | `MICROSOFT_CLIENT_SECRET` | Azure App Registration client secret |
 | `MICROSOFT_TENANT_ID` | Azure AD tenant ID |
@@ -47,4 +47,4 @@ pnpm --filter @smartboard/svc-auth dev
 ```
 
 ## Role in Big Picture
-The authoritative source for user identity. Only the Gateway calls this service. Never exposed publicly.
+The authoritative source for user identity and session lifecycle. Only the Gateway calls this service. Never exposed publicly.

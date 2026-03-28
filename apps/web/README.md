@@ -3,7 +3,7 @@
 Next.js App Router front-end for the smartboard platform.
 
 ## Responsibilities
-- Authentication UI (Microsoft OIDC + DEV bypass login)
+- Browser session bootstrap and sign-out UX
 - Tenant switcher + theme/scheme picker
 - Dataset upload and status tracking
 - Dashboard builder (react-grid-layout)
@@ -17,7 +17,7 @@ Next.js App Router front-end for the smartboard platform.
 ## Key Pages
 | Route | Description |
 |---|---|
-| `/login` | Microsoft OIDC + DEV login |
+| `/` | Overview and tenant-aware app shell |
 | `/datasets` | Upload CSV, trigger ingest, view status |
 | `/dashboards` | List + create dashboards |
 | `/dashboards/:id` | Dashboard builder |
@@ -27,7 +27,6 @@ Next.js App Router front-end for the smartboard platform.
 | Variable | Default | Description |
 |---|---|---|
 | `NEXT_PUBLIC_GATEWAY_URL` | `http://localhost:4000` | Gateway base URL |
-| `NEXT_PUBLIC_DEV_BYPASS_AUTH` | `true` | Show DEV login button |
 
 ## How to Run
 ```bash
@@ -39,4 +38,4 @@ pnpm --filter @smartboard/web dev
 ```
 
 ## Role in Big Picture
-The web app is the single user-facing surface. It talks exclusively to the Gateway (never directly to backend services). TanStack React Query manages server state; SSE from svc-realtime triggers cache invalidation after dataset ingestion.
+The web app is the single user-facing surface. It talks exclusively to the Gateway (never directly to backend services). Browser auth is cookie-based; API tooling can still use bearer tokens. TanStack React Query manages server state; SSE from svc-realtime triggers cache invalidation after dataset ingestion.
