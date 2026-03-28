@@ -5,16 +5,18 @@ import type {
   LogoutSession,
   OidcCallbackQuery,
   OidcCallbackResult,
+  OidcLogoutQuery,
+  OidcLogoutResult,
   OidcStartQuery,
   OidcStartResult,
   RefreshSession,
   UserPreferences,
 } from '@smartboard/shared';
 import {
-  DevLoginSchema,
   LogoutSessionSchema,
   LogoutAllSessionsSchema,
   OidcCallbackQuerySchema,
+  OidcLogoutQuerySchema,
   OidcStartQuerySchema,
   RefreshSessionSchema,
   UserPreferencesSchema,
@@ -28,23 +30,6 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  @HttpCode(200)
-  async login(
-    @Body() body: unknown,
-    @Headers('x-forwarded-for') forwardedFor?: string,
-    @Headers('user-agent') userAgent?: string,
-  ): Promise<ApiOk<LoginResult>> {
-    // Legacy local-only dev bypass. Production auth should use the OIDC/session flow.
-    const parsed = DevLoginSchema.safeParse(body);
-    const email = parsed.success ? parsed.data.email : 'dev@local';
-    const result = await this.authService.login(email, {
-      ipAddress: forwardedFor?.split(',')[0]?.trim(),
-      userAgent,
-    });
-    return { ok: true, data: result };
-  }
-
   @Post('session')
   @HttpCode(200)
   async createSession(
@@ -57,6 +42,14 @@ export class AuthController {
       ipAddress: forwardedFor?.split(',')[0]?.trim(),
       userAgent,
     });
+    return { ok: true, data: result };
+  }
+
+  @Get('oidc/logout')
+  async startOidcLogout(
+    @Query(new ZodValidationPipe(OidcLogoutQuerySchema)) query: OidcLogoutQuery,
+  ): Promise<ApiOk<OidcLogoutResult>> {
+    const result = this.authService.startOidcLogout(query.returnTo);
     return { ok: true, data: result };
   }
 

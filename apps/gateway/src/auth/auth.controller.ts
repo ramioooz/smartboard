@@ -7,6 +7,8 @@ import type {
   LogoutSession,
   OidcCallbackQuery,
   OidcCallbackResult,
+  OidcLogoutQuery,
+  OidcLogoutResult,
   OidcStartQuery,
   OidcStartResult,
   RefreshSession,
@@ -66,6 +68,14 @@ export class AuthController {
     ]);
   }
 
+  private normalizeReturnTo(returnTo?: string): string {
+    if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) {
+      return '/';
+    }
+
+    return returnTo;
+  }
+
   // Override all three global throttlers with brute-force-resistant limits:
   //   short  — 5  attempts per 15 minutes  (~20/hr)
   //   medium — 10 attempts per 15 minutes  (less restrictive safety net)
@@ -73,23 +83,6 @@ export class AuthController {
   //
   // This is enforced at the NestJS layer (per IP, Redis-backed).
   // Nginx also enforces 10 req/min at the edge before requests reach the app.
-  @Throttle({
-    short:  { limit: 5,  ttl: minutes(15) },
-    medium: { limit: 10, ttl: minutes(15) },
-    long:   { limit: 30, ttl: hours(24)   },
-  })
-  @Public()
-  @Post('login')
-  @HttpCode(200)
-  async login(
-    @Body() body: unknown,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ): Promise<ApiOk<SessionResponse>> {
-    const response = await this.authService.post<ApiOk<SessionResponse>>('/auth/login', body);
-    this.setSessionCookies(reply, response.data);
-    return response;
-  }
-
   @Throttle({
     short:  { limit: 5,  ttl: minutes(15) },
     medium: { limit: 10, ttl: minutes(15) },
@@ -148,6 +141,30 @@ export class AuthController {
 
     this.setSessionCookies(reply, response.data);
     return reply.redirect(302, response.data.redirectTo);
+  }
+
+  @Public()
+  @Get('oidc/logout')
+  async startOidcLogout(
+    @Query() query: OidcLogoutQuery,
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
+    const path = query.returnTo
+      ? `/auth/oidc/logout?returnTo=${encodeURIComponent(query.returnTo)}`
+      : '/auth/oidc/logout';
+    const response = await this.authService.get<ApiOk<OidcLogoutResult>>(path);
+    this.clearSessionCookies(reply);
+    return reply.redirect(302, response.data.redirectTo);
+  }
+
+  @Public()
+  @Get('oidc/logout/callback')
+  async completeOidcLogout(
+    @Query() query: OidcLogoutQuery,
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
+    this.clearSessionCookies(reply);
+    return reply.redirect(302, this.normalizeReturnTo(query.returnTo));
   }
 
   @Throttle({

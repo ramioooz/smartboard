@@ -3,6 +3,7 @@ import type { AuthProvider, User } from '@prisma/client';
 import type {
   OidcCallbackQuery,
   OidcCallbackResult,
+  OidcLogoutResult,
   OidcSessionResult,
   OidcStartResult,
   UserPreferencesSchema,
@@ -31,12 +32,6 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly tokenService: TokenService,
   ) {}
-
-  async login(email: string, metadata?: SessionMetadata): Promise<LoginResult> {
-    this.assertDevBypassEnabled();
-    const identity = this.resolveDevIdentity(email);
-    return this.createSessionFromIdentity(identity, metadata);
-  }
 
   async createSession(metadata?: SessionMetadata): Promise<LoginResult> {
     this.assertDevBypassEnabled();
@@ -73,6 +68,15 @@ export class AuthService {
       redirectTo: returnTo,
       ...session,
     };
+  }
+
+  startOidcLogout(returnTo?: string): OidcLogoutResult {
+    const normalizedReturnTo = this.oidcService.normalizeReturnTo(returnTo);
+    if (process.env['DEV_BYPASS_AUTH'] === 'true') {
+      return { redirectTo: normalizedReturnTo };
+    }
+
+    return { redirectTo: this.oidcService.buildLogoutUrl(normalizedReturnTo) };
   }
 
   async refreshSession(refreshToken: string): Promise<LoginResult> {

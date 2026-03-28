@@ -63,6 +63,10 @@ export interface OidcCallbackResult<TUser = unknown> {
   token: string;
 }
 
+export interface OidcLogoutResult {
+  redirectTo: string;
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 
 export interface HealthLive {

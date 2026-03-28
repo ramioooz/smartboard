@@ -1,9 +1,9 @@
 import { apiFetch } from './api';
 import type { ApiOk } from '@smartboard/shared';
-import { setUserId } from './storage';
+import { getGatewayUrl } from './env';
 
 // Re-export storage helpers so the rest of the app imports them from one place
-export { getUserId, setUserId, getToken, setToken, clearAuth } from './storage';
+export { clearAuth } from './storage';
 
 export interface UserPreferences {
   theme: 'light' | 'dark';
@@ -31,8 +31,6 @@ export async function bootstrapSession(): Promise<User> {
   const res = await apiFetch<ApiOk<LoginResult>>('/api/auth/session', {
     method: 'POST',
   });
-
-  setUserId(res.data.user.id);
   return res.data.user;
 }
 
@@ -51,4 +49,9 @@ export async function patchPreferences(prefs: UserPreferences): Promise<User> {
     body: JSON.stringify(prefs),
   });
   return res.data;
+}
+
+export function startLogout(returnTo = '/'): void {
+  const target = `${getGatewayUrl()}/api/auth/oidc/logout?returnTo=${encodeURIComponent(returnTo)}`;
+  window.location.assign(target);
 }

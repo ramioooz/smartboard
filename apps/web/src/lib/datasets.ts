@@ -1,5 +1,4 @@
 import { apiFetch } from './api';
-import { getUserId } from './auth';
 import { getTenantId } from './tenant';
 import type { ApiOk, PagedResult } from '@smartboard/shared';
 
@@ -22,7 +21,7 @@ export interface CreateDatasetResult {
 }
 
 function ctx() {
-  return { userId: getUserId() ?? undefined, tenantId: getTenantId() ?? undefined };
+  return { tenantId: getTenantId() ?? undefined };
 }
 
 export async function listDatasets(page = 1, limit = 50): Promise<PagedResult<Dataset>> {
