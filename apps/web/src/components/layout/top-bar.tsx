@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { startLogout } from '../../lib/auth';
 import { useUser } from '../../hooks/useUser';
 import { usePersistedAppearance } from '../../hooks/usePersistedAppearance';
 import { useTenant } from './tenant-bootstrap';
@@ -91,6 +92,13 @@ export function TopBar() {
       <div className="flex items-center gap-3">
         {user ? (
           <>
+            <button
+              type="button"
+              onClick={() => startLogout('/')}
+              className="rounded-[calc(var(--radius)-6px)] border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+            >
+              Sign out
+            </button>
             <div className="text-right">
               <p className="text-sm font-medium text-[var(--text)]">{user.name ?? user.email}</p>
               <p className="text-xs text-[var(--muted)]">{user.email}</p>

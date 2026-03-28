@@ -16,9 +16,9 @@ Authentication and user management service.
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/auth/session` | Backend-owned session bootstrap for local dev |
-| `POST` | `/auth/login` | Legacy local-only dev bypass |
 | `GET` | `/auth/oidc/start` | Build Microsoft OIDC authorization URL or local dev redirect bootstrap |
 | `GET` | `/auth/oidc/callback` | Exchange authorization code, create session, and return redirect target |
+| `GET` | `/auth/oidc/logout` | Build Microsoft logout URL or local dev redirect |
 | `POST` | `/auth/session/refresh` | Rotate refresh token and issue new access token |
 | `POST` | `/auth/logout` | Revoke a session |
 | `POST` | `/auth/logout-all` | Revoke every session for the current user |
@@ -39,6 +39,7 @@ Authentication and user management service.
 | `MICROSOFT_CLIENT_SECRET` | Azure App Registration client secret |
 | `MICROSOFT_TENANT_ID` | Azure AD tenant ID |
 | `MICROSOFT_REDIRECT_URI` | Public callback URI registered with Microsoft |
+| `MICROSOFT_POST_LOGOUT_REDIRECT_URI` | Public post-logout callback URI registered with Microsoft |
 
 ## How to Run
 ```bash

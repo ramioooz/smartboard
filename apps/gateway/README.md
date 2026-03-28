@@ -42,7 +42,7 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 
 **Gateway layer (Layer 2):**
 
-| Throttler | Default limit | Auth login override |
+| Throttler | Default limit | Auth bootstrap override |
 |-----------|--------------|---------------------|
 | `short`   | 20 / 1 s     | 5 / 15 min          |
 | `medium`  | 300 / 1 min  | 10 / 15 min         |
@@ -56,9 +56,10 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/auth/session` | Browser session bootstrap (local dev bypass today, OIDC-backed later) |
-| `POST` | `/auth/login` | Legacy local-only dev bypass |
 | `GET` | `/auth/oidc/start` | Start Microsoft OIDC login or local dev redirect bootstrap |
 | `GET` | `/auth/oidc/callback` | Complete Microsoft OIDC login and set auth cookies |
+| `GET` | `/auth/oidc/logout` | Start app + provider logout and clear auth cookies |
+| `GET` | `/auth/oidc/logout/callback` | Finish provider logout and redirect back into the app |
 | `POST` | `/auth/session/refresh` | Rotate refresh token and renew cookies |
 | `POST` | `/auth/logout` | Revoke current session and clear auth cookies |
 | `POST` | `/auth/logout-all` | Revoke all sessions for the current user and clear auth cookies |

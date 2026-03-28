@@ -1,9 +1,6 @@
 import { getGatewayUrl } from './env';
-import { getToken } from './storage';
 
 interface FetchOptions extends RequestInit {
-  /** @deprecated Pass x-tenant-id via tenantId instead; userId is now derived from the JWT */
-  userId?: string;
   tenantId?: string;
 }
 
@@ -18,18 +15,9 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, init: FetchOptions = {}): Promise<T> {
-  const { userId, tenantId, ...rest } = init;
+  const { tenantId, ...rest } = init;
   const headers = new Headers(rest.headers);
   headers.set('Content-Type', 'application/json');
-
-  // Prefer JWT — the gateway verifies it locally (stateless, no network call).
-  // Falls back to x-user-id for DEV_BYPASS_AUTH cURL convenience.
-  const token = getToken();
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  } else if (userId) {
-    headers.set('x-user-id', userId);
-  }
 
   if (tenantId) headers.set('x-tenant-id', tenantId);
 

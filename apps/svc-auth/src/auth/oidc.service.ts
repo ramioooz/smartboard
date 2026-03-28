@@ -107,6 +107,16 @@ export class OidcService {
     return returnTo;
   }
 
+  buildLogoutUrl(returnTo?: string): string {
+    const tenantId = requireEnv('MICROSOFT_TENANT_ID');
+    const postLogoutRedirect = new URL(requireEnv('MICROSOFT_POST_LOGOUT_REDIRECT_URI'));
+    postLogoutRedirect.searchParams.set('returnTo', this.normalizeReturnTo(returnTo));
+
+    const url = new URL(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout`);
+    url.searchParams.set('post_logout_redirect_uri', postLogoutRedirect.toString());
+    return url.toString();
+  }
+
   private signState(payload: OidcStatePayload): string {
     return sign(payload, requireEnv('SESSION_SECRET'), {
       expiresIn: '10m',

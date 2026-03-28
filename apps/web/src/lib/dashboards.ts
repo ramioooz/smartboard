@@ -1,5 +1,4 @@
 import { apiFetch } from './api';
-import { getUserId } from './auth';
 import { getTenantId } from './tenant';
 import type { ApiOk, PagedResult } from '@smartboard/shared';
 
@@ -31,7 +30,7 @@ export interface Dashboard {
 }
 
 function ctx() {
-  return { userId: getUserId() ?? undefined, tenantId: getTenantId() ?? undefined };
+  return { tenantId: getTenantId() ?? undefined };
 }
 
 export async function listDashboards(): Promise<PagedResult<Dashboard>> {

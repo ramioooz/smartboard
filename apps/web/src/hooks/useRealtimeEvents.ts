@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { getToken } from '@/lib/storage';
 import { getGatewayUrl } from '@/lib/env';
 
 interface DatasetEvent {
@@ -23,7 +22,6 @@ export function useRealtimeEvents(tenantId: string | null): void {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const token = getToken();
     if (!tenantId) return;
 
     const url = `${getGatewayUrl()}/api/realtime/stream`;
@@ -37,7 +35,6 @@ export function useRealtimeEvents(tenantId: string | null): void {
           headers: {
             'x-tenant-id': tenantId,
             Accept: 'text/event-stream',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           credentials: 'include',
           signal: controller.signal,

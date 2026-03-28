@@ -188,26 +188,18 @@
       "settingFollowRedirects": "global"
     },
     {
-      "_id": "req_auth_login",
+      "_id": "req_auth_session",
       "_type": "request",
       "parentId": "fld_auth",
       "modified": 1774180800000,
       "created": 1774180800000,
-      "name": "DEV Login",
+      "name": "Local Session Bootstrap",
       "method": "POST",
-      "url": "{{ _.base_url }}/api/auth/login",
-      "description": "Run first. Stores `token` automatically.",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\n  \"email\": \"dev@local\"\n}"
-      },
+      "url": "{{ _.base_url }}/api/auth/session",
+      "description": "Run first in local dev. Stores `token` automatically.",
+      "body": {},
       "parameters": [],
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        }
-      ],
+      "headers": [],
       "authentication": {},
       "afterResponseScript": "if (insomnia.response.code === 200) {\n  const jsonBody = insomnia.response.json();\n  const token = jsonBody?.data?.token;\n  if (token) insomnia.environment.set('token', token);\n}\n",
       "metaSortKey": -800,

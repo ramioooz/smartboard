@@ -119,6 +119,7 @@ services:
       MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
       MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-}
       MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-http://localhost/api/auth/oidc/callback}
+      MICROSOFT_POST_LOGOUT_REDIRECT_URI: ${MICROSOFT_POST_LOGOUT_REDIRECT_URI:-http://localhost/api/auth/oidc/logout/callback}
     expose:
       - "4010"
     healthcheck:

@@ -13,10 +13,6 @@ export type Pagination = z.infer<typeof PaginationSchema>;
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export const DevLoginSchema = z.object({
-  email: z.string().email().optional().default('dev@local'),
-});
-
 export const UserPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark']).default('light'),
   scheme: z.enum(['mint', 'warm', 'neon', 'ember']).default('mint'),
@@ -46,6 +42,12 @@ export const OidcStartQuerySchema = z.object({
 });
 
 export type OidcStartQuery = z.infer<typeof OidcStartQuerySchema>;
+
+export const OidcLogoutQuerySchema = z.object({
+  returnTo: z.string().optional(),
+});
+
+export type OidcLogoutQuery = z.infer<typeof OidcLogoutQuerySchema>;
 
 export const OidcCallbackQuerySchema = z.object({
   code: z.string().optional(),
