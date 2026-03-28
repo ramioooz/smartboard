@@ -31,6 +31,7 @@ Authentication and user management service.
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | Points to `auth` schema |
+| `REDIS_URL` | Redis connection URL used to publish revoked session IDs |
 | `JWT_SECRET` | JWT signing key |
 | `DEV_BYPASS_AUTH` | Enables the local dev auth shortcut |
 | `DEV_DEFAULT_EMAIL` | Default local dev identity for `/auth/session` |

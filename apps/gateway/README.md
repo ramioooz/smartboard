@@ -85,7 +85,7 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 | `ANALYTICS_SERVICE_URL` | svc-analytics base URL |
 | `DASHBOARDS_SERVICE_URL` | svc-dashboards base URL |
 | `REALTIME_SERVICE_URL` | svc-realtime base URL |
-| `REDIS_URL` | Redis connection URL — used by ThrottlerModule for shared rate-limit counters |
+| `REDIS_URL` | Redis connection URL — used by ThrottlerModule counters and revoked-session checks |
 | `JWT_SECRET` | JWT signing secret |
 | `SESSION_SECRET` | Cookie session secret |
 | `LOG_LEVEL` | Pino log level (default: info) |
