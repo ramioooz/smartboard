@@ -1,6 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { AuthProvider } from '@prisma/client';
-import type { User } from '@prisma/client';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import type { AuthProvider, User } from '@prisma/client';
 import type { UserPreferencesSchema } from '@smartboard/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import type { ExternalIdentity, SessionMetadata } from './identity.types';
@@ -27,6 +26,42 @@ export class AuthService {
 
   async login(email: string, metadata?: SessionMetadata): Promise<LoginResult> {
     const identity = this.resolveDevIdentity(email);
+    return this.createSessionFromIdentity(identity, metadata);
+  }
+
+  async createSession(metadata?: SessionMetadata): Promise<LoginResult> {
+    const email = process.env['DEV_AUTH_EMAIL'] ?? 'dev@local';
+    const identity = this.resolveDevIdentity(email);
+    return this.createSessionFromIdentity(identity, metadata);
+  }
+
+  async refreshSession(refreshToken: string): Promise<LoginResult> {
+    const rotated = await this.sessionService.rotateRefreshToken(refreshToken);
+    const user = await this.me(rotated.session.userId);
+    const token = this.tokenService.issueAccessToken({
+      userId: user.id,
+      sessionId: rotated.session.id,
+    });
+
+    return {
+      user,
+      sessionId: rotated.session.id,
+      refreshToken: rotated.refreshToken,
+      token,
+    };
+  }
+
+  async logout(sessionId?: string): Promise<void> {
+    if (!sessionId) {
+      throw new UnauthorizedException('Missing session id');
+    }
+    await this.sessionService.revokeSession(sessionId);
+  }
+
+  private async createSessionFromIdentity(
+    identity: ExternalIdentity,
+    metadata?: SessionMetadata,
+  ): Promise<LoginResult> {
     const user = await this.findOrCreateUser(identity);
     const session = await this.sessionService.createSession({
       userId: user.id,
@@ -79,7 +114,7 @@ export class AuthService {
 
   private resolveDevIdentity(email: string): ExternalIdentity {
     return {
-      provider: AuthProvider.DEV,
+      provider: 'DEV' as AuthProvider,
       externalId: email,
       email,
       name: email.split('@')[0],

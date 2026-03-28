@@ -24,7 +24,7 @@ export function useRealtimeEvents(tenantId: string | null): void {
 
   useEffect(() => {
     const token = getToken();
-    if (!tenantId || !token) return;
+    if (!tenantId) return;
 
     const url = `${getGatewayUrl()}/api/realtime/stream`;
 
@@ -36,9 +36,10 @@ export function useRealtimeEvents(tenantId: string | null): void {
         const res = await fetch(url, {
           headers: {
             'x-tenant-id': tenantId,
-            Authorization: `Bearer ${token}`,
             Accept: 'text/event-stream',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
+          credentials: 'include',
           signal: controller.signal,
         });
 

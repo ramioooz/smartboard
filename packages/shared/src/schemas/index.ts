@@ -25,6 +25,18 @@ export const UserPreferencesSchema = z.object({
 
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
 
+export const RefreshSessionSchema = z.object({
+  refreshToken: z.string().min(1).optional(),
+});
+
+export type RefreshSession = z.infer<typeof RefreshSessionSchema>;
+
+export const LogoutSessionSchema = z.object({
+  sessionId: z.string().min(1).optional(),
+});
+
+export type LogoutSession = z.infer<typeof LogoutSessionSchema>;
+
 // ─── Tenants ─────────────────────────────────────────────────────────────────
 
 export const CreateTenantSchema = z.object({

@@ -33,7 +33,11 @@ export async function apiFetch<T>(path: string, init: FetchOptions = {}): Promis
 
   if (tenantId) headers.set('x-tenant-id', tenantId);
 
-  const res = await fetch(`${getGatewayUrl()}${path}`, { ...rest, headers });
+  const res = await fetch(`${getGatewayUrl()}${path}`, {
+    credentials: rest.credentials ?? 'include',
+    ...rest,
+    headers,
+  });
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

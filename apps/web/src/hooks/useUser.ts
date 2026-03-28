@@ -2,27 +2,19 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../lib/api';
-import { getToken } from '../lib/storage';
-import { clearAuth, devLogin, getMe, patchPreferences } from '../lib/auth';
+import { clearAuth, bootstrapSession, getMe, patchPreferences } from '../lib/auth';
 import type { User, UserPreferences } from '../lib/auth';
 
 export function useUser() {
   return useQuery<User>({
     queryKey: ['user'],
     queryFn: async () => {
-      // A valid JWT token is the source of truth for auth state.
-      // If we don't have one, auto-login (dev mode creates one immediately).
-      const token = getToken();
-      if (!token) {
-        return devLogin();
-      }
-
       try {
         return await getMe();
       } catch (error) {
         if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
           clearAuth();
-          return devLogin();
+          return bootstrapSession();
         }
         throw error;
       }
