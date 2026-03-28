@@ -1,6 +1,6 @@
 import { apiFetch } from './api';
 import type { ApiOk } from '@smartboard/shared';
-import { setUserId, setToken } from './storage';
+import { setUserId } from './storage';
 
 // Re-export storage helpers so the rest of the app imports them from one place
 export { getUserId, setUserId, getToken, setToken, clearAuth } from './storage';
@@ -22,17 +22,16 @@ export interface User {
 
 interface LoginResult {
   user: User;
+  sessionId: string;
+  refreshToken: string;
   token: string;
 }
 
-export async function devLogin(): Promise<User> {
-  const res = await apiFetch<ApiOk<LoginResult>>('/api/auth/login', {
+export async function bootstrapSession(): Promise<User> {
+  const res = await apiFetch<ApiOk<LoginResult>>('/api/auth/session', {
     method: 'POST',
-    body: JSON.stringify({ email: 'dev@local' }),
   });
-  // Store both the JWT and the userId — JWT is the auth credential,
-  // userId is kept for UI state (profile display, etc.)
-  setToken(res.data.token);
+
   setUserId(res.data.user.id);
   return res.data.user;
 }

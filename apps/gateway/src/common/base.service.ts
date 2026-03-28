@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { HttpException, ServiceUnavailableException } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { RequestContextService } from '../context/request-context.service';
 
@@ -34,8 +34,19 @@ export abstract class BaseService {
 
   protected handleError(err: unknown): never {
     if (err instanceof AxiosError) {
-      const status = err.response?.status ?? 'unreachable';
-      throw new ServiceUnavailableException(`${this.serviceName} returned ${status}`);
+      const status = err.response?.status;
+      if (status) {
+        const payload = err.response?.data as
+          | string
+          | { error?: { message?: string }; message?: string }
+          | undefined;
+        const message =
+          typeof payload === 'string'
+            ? payload
+            : payload?.error?.message ?? payload?.message ?? `${this.serviceName} returned ${status}`;
+        throw new HttpException(message, status);
+      }
+      throw new ServiceUnavailableException(`${this.serviceName} is unreachable`);
     }
     throw new ServiceUnavailableException(`${this.serviceName} is unreachable`);
   }

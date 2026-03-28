@@ -12,6 +12,7 @@ export type Scheme = 'mint' | 'warm' | 'neon' | 'ember';
 export interface RequestContext {
   requestId: string;
   userId?: string;
+  sessionId?: string;
   tenantId?: string;
   roles?: Role[];
   ip?: string;

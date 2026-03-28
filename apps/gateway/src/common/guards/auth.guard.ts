@@ -9,8 +9,22 @@ import { RequestContextService } from '../../context/request-context.service';
 
 interface JwtPayload {
   sub: string;
+  sid?: string;
   iat: number;
   exp: number;
+}
+
+function parseCookies(header: string | undefined): Record<string, string> {
+  if (!header) return {};
+
+  return header.split(';').reduce<Record<string, string>>((acc, pair) => {
+    const idx = pair.indexOf('=');
+    if (idx === -1) return acc;
+    const key = pair.slice(0, idx).trim();
+    const value = pair.slice(idx + 1).trim();
+    acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
 }
 
 @Injectable()
@@ -47,15 +61,18 @@ export class AuthGuard implements CanActivate {
     // TODO (future): add a Redis JTI blocklist check here for immediate
     // token invalidation on logout before the token naturally expires.
     const authHeader = request.headers['authorization'] as string | undefined;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const cookieToken = parseCookies(request.headers['cookie'] as string | undefined)['sb_access_token'];
+    const token = bearerToken ?? cookieToken;
 
     if (!token) {
-      throw new UnauthorizedException('Missing Authorization: Bearer <token>');
+      throw new UnauthorizedException('Missing authentication token');
     }
 
     try {
       const payload = verify(token, requireEnv('JWT_SECRET')) as JwtPayload;
       ctx.userId = payload.sub;
+      ctx.sessionId = payload.sid;
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');

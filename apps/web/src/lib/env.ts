@@ -8,6 +8,9 @@
 
 export function getGatewayUrl(): string {
   const url = process.env.NEXT_PUBLIC_GATEWAY_URL;
+  if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return `${window.location.protocol}//${window.location.hostname}`;
+  }
   if (!url) throw new Error('Missing required environment variable: NEXT_PUBLIC_GATEWAY_URL');
   return url;
 }

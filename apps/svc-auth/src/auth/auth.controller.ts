@@ -1,6 +1,11 @@
 import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, Post } from '@nestjs/common';
-import type { ApiOk, UserPreferences } from '@smartboard/shared';
-import { DevLoginSchema, UserPreferencesSchema } from '@smartboard/shared';
+import type { ApiOk, LogoutSession, RefreshSession, UserPreferences } from '@smartboard/shared';
+import {
+  DevLoginSchema,
+  LogoutSessionSchema,
+  RefreshSessionSchema,
+  UserPreferencesSchema,
+} from '@smartboard/shared';
 import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { User } from '@prisma/client';
 import type { LoginResult } from './auth.service';
@@ -12,12 +17,50 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() body: unknown): Promise<ApiOk<LoginResult>> {
+  async login(
+    @Body() body: unknown,
+    @Headers('x-forwarded-for') forwardedFor?: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<ApiOk<LoginResult>> {
     // Lenient — defaults to 'dev@local' if body is missing or invalid
     const parsed = DevLoginSchema.safeParse(body);
     const email = parsed.success ? parsed.data.email : 'dev@local';
-    const result = await this.authService.login(email);
+    const result = await this.authService.login(email, {
+      ipAddress: forwardedFor?.split(',')[0]?.trim(),
+      userAgent,
+    });
     return { ok: true, data: result };
+  }
+
+  @Post('session')
+  @HttpCode(200)
+  async createSession(
+    @Headers('x-forwarded-for') forwardedFor?: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<ApiOk<LoginResult>> {
+    const result = await this.authService.createSession({
+      ipAddress: forwardedFor?.split(',')[0]?.trim(),
+      userAgent,
+    });
+    return { ok: true, data: result };
+  }
+
+  @Post('session/refresh')
+  @HttpCode(200)
+  async refreshSession(
+    @Body(new ZodValidationPipe(RefreshSessionSchema)) body: RefreshSession,
+  ): Promise<ApiOk<LoginResult>> {
+    const result = await this.authService.refreshSession(body.refreshToken ?? '');
+    return { ok: true, data: result };
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logout(
+    @Body(new ZodValidationPipe(LogoutSessionSchema)) body: LogoutSession,
+  ): Promise<ApiOk<{ success: true }>> {
+    await this.authService.logout(body.sessionId);
+    return { ok: true, data: { success: true } };
   }
 
   @Get('me')
