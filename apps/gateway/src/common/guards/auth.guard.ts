@@ -6,6 +6,7 @@ import { verify } from 'jsonwebtoken';
 import { requireEnv } from '@smartboard/shared';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { RequestContextService } from '../../context/request-context.service';
+import { SessionRevocationService } from '../../auth/session-revocation.service';
 
 interface JwtPayload {
   sub: string;
@@ -32,9 +33,10 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly rcs: RequestContextService,
+    private readonly sessionRevocationService: SessionRevocationService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -58,8 +60,6 @@ export class AuthGuard implements CanActivate {
     // dev token once with:
     //   node scripts/gen-dev-token.mjs
     //
-    // TODO (future): add a Redis JTI blocklist check here for immediate
-    // token invalidation on logout before the token naturally expires.
     const authHeader = request.headers['authorization'] as string | undefined;
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const cookieToken = parseCookies(request.headers['cookie'] as string | undefined)['sb_access_token'];
@@ -71,10 +71,16 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = verify(token, requireEnv('JWT_SECRET')) as JwtPayload;
+      if (payload.sid && await this.sessionRevocationService.isRevoked(payload.sid)) {
+        throw new UnauthorizedException('Session revoked');
+      }
       ctx.userId = payload.sub;
       ctx.sessionId = payload.sid;
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid or expired token');
     }
   }

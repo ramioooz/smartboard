@@ -3,12 +3,14 @@ import type { AuthProvider, RefreshToken, Session } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from './token.service';
 import type { SessionMetadata } from './identity.types';
+import { SessionRevocationService } from './session-revocation.service';
 
 @Injectable()
 export class SessionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokenService: TokenService,
+    private readonly sessionRevocationService: SessionRevocationService,
   ) {}
 
   async createSession(params: {
@@ -96,6 +98,14 @@ export class SessionService {
 
   async revokeSession(sessionId: string): Promise<void> {
     const now = new Date();
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { id: true, expiresAt: true },
+    });
+    if (!session) {
+      return;
+    }
+
     await this.prisma.$transaction([
       this.prisma.session.update({
         where: { id: sessionId },
@@ -106,6 +116,7 @@ export class SessionService {
         data: { revokedAt: now },
       }),
     ]);
+    await this.sessionRevocationService.markRevoked(session.id, session.expiresAt);
   }
 
   async revokeAllSessionsForUser(userId: string): Promise<number> {
@@ -115,7 +126,7 @@ export class SessionService {
         userId,
         revokedAt: null,
       },
-      select: { id: true },
+      select: { id: true, expiresAt: true },
     });
 
     if (sessions.length === 0) {
@@ -140,6 +151,9 @@ export class SessionService {
       }),
     ]);
 
+    await this.sessionRevocationService.markManyRevoked(
+      sessions.map((session) => ({ id: session.id, expiresAt: session.expiresAt })),
+    );
     return sessionIds.length;
   }
 

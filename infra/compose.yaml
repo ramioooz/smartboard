@@ -108,6 +108,7 @@ services:
       PORT: 4010
       LOG_LEVEL: ${LOG_LEVEL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartboard}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartboard}?schema=auth
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
