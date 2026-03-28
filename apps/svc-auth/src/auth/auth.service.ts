@@ -1,42 +1,61 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { AuthProvider } from '@prisma/client';
 import type { User } from '@prisma/client';
 import type { UserPreferencesSchema } from '@smartboard/shared';
-import { requireEnv } from '@smartboard/shared';
-import { sign } from 'jsonwebtoken';
-import type { SignOptions } from 'jsonwebtoken';
 import { PrismaService } from '../prisma/prisma.service';
+import type { ExternalIdentity, SessionMetadata } from './identity.types';
+import { SessionService } from './session.service';
+import { TokenService } from './token.service';
 
 type UserPreferences = ReturnType<typeof UserPreferencesSchema.parse>;
 
 export interface LoginResult {
   user: User;
+  sessionId: string;
+  refreshToken: string;
   /** Signed HS256 JWT — verify locally in the gateway with JWT_SECRET */
   token: string;
 }
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sessionService: SessionService,
+    private readonly tokenService: TokenService,
+  ) {}
 
-  async login(email: string): Promise<LoginResult> {
-    const user = await this.prisma.user.upsert({
-      where: { email },
-      update: { updatedAt: new Date() },
+  async login(email: string, metadata?: SessionMetadata): Promise<LoginResult> {
+    const identity = this.resolveDevIdentity(email);
+    const user = await this.findOrCreateUser(identity);
+    const session = await this.sessionService.createSession({
+      userId: user.id,
+      provider: identity.provider,
+      externalSubject: identity.externalId,
+      metadata,
+    });
+    const refreshToken = await this.sessionService.createRefreshToken(session.id);
+    const token = this.tokenService.issueAccessToken({
+      userId: user.id,
+      sessionId: session.id,
+    });
+
+    return { user, sessionId: session.id, refreshToken: refreshToken.token, token };
+  }
+
+  async findOrCreateUser(identity: ExternalIdentity): Promise<User> {
+    return this.prisma.user.upsert({
+      where: { email: identity.email },
+      update: {
+        updatedAt: new Date(),
+        name: identity.name ?? undefined,
+      },
       create: {
-        email,
-        name: email.split('@')[0],
+        email: identity.email,
+        name: identity.name ?? null,
         preferences: {},
       },
     });
-
-    // JWT_EXPIRES_IN defaults to 15m — short-lived is intentional.
-    // For longer sessions, pair this with a refresh-token endpoint.
-    // The cast is needed because @types/jsonwebtoken narrows expiresIn to
-    // a template-literal StringValue type, but any ms-compatible string works at runtime.
-    const expiresIn = (process.env['JWT_EXPIRES_IN'] ?? '15m') as SignOptions['expiresIn'];
-    const token = sign({ sub: user.id }, requireEnv('JWT_SECRET'), { expiresIn });
-
-    return { user, token };
   }
 
   async me(userId: string): Promise<User> {
@@ -56,5 +75,14 @@ export class AuthService {
     } catch {
       throw new NotFoundException(`User ${userId} not found`);
     }
+  }
+
+  private resolveDevIdentity(email: string): ExternalIdentity {
+    return {
+      provider: AuthProvider.DEV,
+      externalId: email,
+      email,
+      name: email.split('@')[0],
+    };
   }
 }
