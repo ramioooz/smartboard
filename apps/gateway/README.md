@@ -57,6 +57,8 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 |---|---|---|
 | `POST` | `/auth/session` | Browser session bootstrap (local dev bypass today, OIDC-backed later) |
 | `POST` | `/auth/login` | Legacy local-only dev bypass |
+| `GET` | `/auth/oidc/start` | Start Microsoft OIDC login or local dev redirect bootstrap |
+| `GET` | `/auth/oidc/callback` | Complete Microsoft OIDC login and set auth cookies |
 | `POST` | `/auth/session/refresh` | Rotate refresh token and renew cookies |
 | `POST` | `/auth/logout` | Revoke current session and clear auth cookies |
 | `GET` | `/auth/me` | Current user |

@@ -1,8 +1,19 @@
-import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, Post } from '@nestjs/common';
-import type { ApiOk, LogoutSession, RefreshSession, UserPreferences } from '@smartboard/shared';
+import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, Post, Query } from '@nestjs/common';
+import type {
+  ApiOk,
+  LogoutSession,
+  OidcCallbackQuery,
+  OidcCallbackResult,
+  OidcStartQuery,
+  OidcStartResult,
+  RefreshSession,
+  UserPreferences,
+} from '@smartboard/shared';
 import {
   DevLoginSchema,
   LogoutSessionSchema,
+  OidcCallbackQuerySchema,
+  OidcStartQuerySchema,
   RefreshSessionSchema,
   UserPreferencesSchema,
 } from '@smartboard/shared';
@@ -41,6 +52,32 @@ export class AuthController {
     // Backend-owned dev bootstrap path. In production this should be replaced
     // by an interactive OIDC flow that ends with normal session issuance.
     const result = await this.authService.createSession({
+      ipAddress: forwardedFor?.split(',')[0]?.trim(),
+      userAgent,
+    });
+    return { ok: true, data: result };
+  }
+
+  @Get('oidc/start')
+  async startOidc(
+    @Query(new ZodValidationPipe(OidcStartQuerySchema)) query: OidcStartQuery,
+    @Headers('x-forwarded-for') forwardedFor?: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<ApiOk<OidcStartResult<User>>> {
+    const result = await this.authService.startOidc(query.returnTo, {
+      ipAddress: forwardedFor?.split(',')[0]?.trim(),
+      userAgent,
+    });
+    return { ok: true, data: result };
+  }
+
+  @Get('oidc/callback')
+  async completeOidcCallback(
+    @Query(new ZodValidationPipe(OidcCallbackQuerySchema)) query: OidcCallbackQuery,
+    @Headers('x-forwarded-for') forwardedFor?: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<ApiOk<OidcCallbackResult<User>>> {
+    const result = await this.authService.completeOidcCallback(query, {
       ipAddress: forwardedFor?.split(',')[0]?.trim(),
       userAgent,
     });

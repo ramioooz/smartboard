@@ -39,6 +39,30 @@ export interface ApiError {
 
 export type ApiResponse<T> = ApiOk<T> | ApiError;
 
+export interface OidcRedirectResult {
+  mode: 'redirect';
+  authorizationUrl: string;
+}
+
+export interface OidcSessionResult<TUser = unknown> {
+  mode: 'session';
+  redirectTo: string;
+  user: TUser;
+  sessionId: string;
+  refreshToken: string;
+  token: string;
+}
+
+export type OidcStartResult<TUser = unknown> = OidcRedirectResult | OidcSessionResult<TUser>;
+
+export interface OidcCallbackResult<TUser = unknown> {
+  redirectTo: string;
+  user: TUser;
+  sessionId: string;
+  refreshToken: string;
+  token: string;
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 
 export interface HealthLive {

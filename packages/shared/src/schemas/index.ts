@@ -37,6 +37,21 @@ export const LogoutSessionSchema = z.object({
 
 export type LogoutSession = z.infer<typeof LogoutSessionSchema>;
 
+export const OidcStartQuerySchema = z.object({
+  returnTo: z.string().optional(),
+});
+
+export type OidcStartQuery = z.infer<typeof OidcStartQuerySchema>;
+
+export const OidcCallbackQuerySchema = z.object({
+  code: z.string().optional(),
+  state: z.string().optional(),
+  error: z.string().optional(),
+  error_description: z.string().optional(),
+});
+
+export type OidcCallbackQuery = z.infer<typeof OidcCallbackQuerySchema>;
+
 // ─── Tenants ─────────────────────────────────────────────────────────────────
 
 export const CreateTenantSchema = z.object({
