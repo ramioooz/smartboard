@@ -3,7 +3,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { decode, sign, verify } from 'jsonwebtoken';
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
+import { sign, verify } from 'jsonwebtoken';
 import { randomBytes } from 'node:crypto';
 import { requireEnv } from '@smartboard/shared';
 import type { OidcCallbackQuery } from '@smartboard/shared';
@@ -16,9 +17,7 @@ interface OidcStatePayload {
   returnTo: string;
 }
 
-interface MicrosoftIdTokenClaims {
-  aud?: string;
-  iss?: string;
+interface MicrosoftIdTokenClaims extends JWTPayload {
   nonce?: string;
   sub?: string;
   email?: string;
@@ -35,6 +34,9 @@ interface MicrosoftUserInfo {
 
 @Injectable()
 export class OidcService {
+  private jwksTenantId?: string;
+  private jwks?: ReturnType<typeof createRemoteJWKSet>;
+
   buildAuthorizationUrl(returnTo?: string): string {
     const tenantId = requireEnv('MICROSOFT_TENANT_ID');
     const clientId = requireEnv('MICROSOFT_CLIENT_ID');
@@ -71,17 +73,8 @@ export class OidcService {
 
     const state = this.verifyState(query.state);
     const tokenResponse = await this.exchangeCodeForTokens(query.code);
-    const claims = this.extractIdTokenClaims(tokenResponse.id_token);
+    const claims = await this.verifyIdToken(tokenResponse.id_token);
 
-    const clientId = requireEnv('MICROSOFT_CLIENT_ID');
-    const tenantId = requireEnv('MICROSOFT_TENANT_ID');
-    const expectedIssuer = `https://login.microsoftonline.com/${tenantId}/v2.0`;
-    if (claims.aud !== clientId) {
-      throw new UnauthorizedException('OIDC audience mismatch');
-    }
-    if (claims.iss !== expectedIssuer) {
-      throw new UnauthorizedException('OIDC issuer mismatch');
-    }
     if (claims.nonce !== state.nonce) {
       throw new UnauthorizedException('OIDC nonce mismatch');
     }
@@ -168,13 +161,25 @@ export class OidcService {
     };
   }
 
-  private extractIdTokenClaims(idToken: string): MicrosoftIdTokenClaims {
-    const payload = decode(idToken);
-    if (!payload || typeof payload !== 'object') {
-      throw new UnauthorizedException('Unable to decode OIDC id_token');
-    }
+  private async verifyIdToken(idToken: string): Promise<MicrosoftIdTokenClaims> {
+    const tenantId = requireEnv('MICROSOFT_TENANT_ID');
+    const clientId = requireEnv('MICROSOFT_CLIENT_ID');
+    const expectedIssuer = `https://login.microsoftonline.com/${tenantId}/v2.0`;
 
-    return payload as MicrosoftIdTokenClaims;
+    try {
+      const { payload } = await jwtVerify(idToken, this.getMicrosoftJwks(tenantId), {
+        issuer: expectedIssuer,
+        audience: clientId,
+      });
+
+      return payload as MicrosoftIdTokenClaims;
+    } catch (error) {
+      throw new UnauthorizedException(
+        `OIDC id_token verification failed: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private async fetchUserInfo(accessToken: string): Promise<MicrosoftUserInfo> {
@@ -189,5 +194,16 @@ export class OidcService {
     }
 
     return (await response.json()) as MicrosoftUserInfo;
+  }
+
+  private getMicrosoftJwks(tenantId: string): ReturnType<typeof createRemoteJWKSet> {
+    if (!this.jwks || this.jwksTenantId !== tenantId) {
+      this.jwksTenantId = tenantId;
+      this.jwks = createRemoteJWKSet(
+        new URL(`https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`),
+      );
+    }
+
+    return this.jwks;
   }
 }
