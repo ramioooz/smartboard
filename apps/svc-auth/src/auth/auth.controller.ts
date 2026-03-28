@@ -22,7 +22,7 @@ export class AuthController {
     @Headers('x-forwarded-for') forwardedFor?: string,
     @Headers('user-agent') userAgent?: string,
   ): Promise<ApiOk<LoginResult>> {
-    // Lenient — defaults to 'dev@local' if body is missing or invalid
+    // Legacy local-only dev bypass. Production auth should use the OIDC/session flow.
     const parsed = DevLoginSchema.safeParse(body);
     const email = parsed.success ? parsed.data.email : 'dev@local';
     const result = await this.authService.login(email, {
@@ -38,6 +38,8 @@ export class AuthController {
     @Headers('x-forwarded-for') forwardedFor?: string,
     @Headers('user-agent') userAgent?: string,
   ): Promise<ApiOk<LoginResult>> {
+    // Backend-owned dev bootstrap path. In production this should be replaced
+    // by an interactive OIDC flow that ends with normal session issuance.
     const result = await this.authService.createSession({
       ipAddress: forwardedFor?.split(',')[0]?.trim(),
       userAgent,

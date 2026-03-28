@@ -15,10 +15,12 @@ Authentication and user management service.
 ## Key Endpoints (internal, called by Gateway)
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/internal/sessions` | Create session (dev bypass or OIDC) |
-| `DELETE` | `/internal/sessions/:id` | Invalidate session |
-| `GET` | `/internal/users/:id` | Get user by ID |
-| `GET/PUT` | `/internal/users/:id/preferences` | Get/update preferences |
+| `POST` | `/auth/session` | Backend-owned session bootstrap for local dev |
+| `POST` | `/auth/login` | Legacy local-only dev bypass |
+| `POST` | `/auth/session/refresh` | Rotate refresh token and issue new access token |
+| `POST` | `/auth/logout` | Revoke a session |
+| `GET` | `/auth/me` | Get current user by forwarded identity |
+| `PATCH` | `/auth/me/preferences` | Update current user preferences |
 | `GET` | `/health/live` | Liveness |
 | `GET` | `/health/ready` | Readiness (DB check) |
 
@@ -27,6 +29,8 @@ Authentication and user management service.
 |---|---|
 | `DATABASE_URL` | Points to `auth` schema |
 | `JWT_SECRET` | JWT signing key |
+| `DEV_BYPASS_AUTH` | Enables the local dev auth shortcut |
+| `DEV_DEFAULT_EMAIL` | Default local dev identity for `/auth/session` |
 | `MICROSOFT_CLIENT_ID` | Azure App Registration client ID |
 | `MICROSOFT_CLIENT_SECRET` | Azure App Registration client secret |
 | `MICROSOFT_TENANT_ID` | Azure AD tenant ID |
