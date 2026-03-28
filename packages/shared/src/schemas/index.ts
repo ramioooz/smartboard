@@ -37,6 +37,10 @@ export const LogoutSessionSchema = z.object({
 
 export type LogoutSession = z.infer<typeof LogoutSessionSchema>;
 
+export const LogoutAllSessionsSchema = z.object({});
+
+export type LogoutAllSessions = z.infer<typeof LogoutAllSessionsSchema>;
+
 export const OidcStartQuerySchema = z.object({
   returnTo: z.string().optional(),
 });

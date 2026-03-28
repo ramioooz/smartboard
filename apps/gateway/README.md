@@ -61,6 +61,7 @@ Two-layer strategy — see root [README.md](../../README.md#rate-limiting) for t
 | `GET` | `/auth/oidc/callback` | Complete Microsoft OIDC login and set auth cookies |
 | `POST` | `/auth/session/refresh` | Rotate refresh token and renew cookies |
 | `POST` | `/auth/logout` | Revoke current session and clear auth cookies |
+| `POST` | `/auth/logout-all` | Revoke all sessions for the current user and clear auth cookies |
 | `GET` | `/auth/me` | Current user |
 | `PATCH` | `/auth/me/preferences` | Update user preferences |
 | `GET/POST` | `/tenants` | List/create tenants |

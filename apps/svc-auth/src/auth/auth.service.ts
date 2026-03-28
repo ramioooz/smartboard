@@ -98,6 +98,15 @@ export class AuthService {
     await this.sessionService.revokeSession(sessionId);
   }
 
+  async logoutAll(userId?: string): Promise<{ sessionsRevoked: number }> {
+    if (!userId) {
+      throw new UnauthorizedException('Missing user id');
+    }
+
+    const sessionsRevoked = await this.sessionService.revokeAllSessionsForUser(userId);
+    return { sessionsRevoked };
+  }
+
   private async createSessionFromIdentity(
     identity: ExternalIdentity,
     metadata?: SessionMetadata,

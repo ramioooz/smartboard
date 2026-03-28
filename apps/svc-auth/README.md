@@ -21,6 +21,7 @@ Authentication and user management service.
 | `GET` | `/auth/oidc/callback` | Exchange authorization code, create session, and return redirect target |
 | `POST` | `/auth/session/refresh` | Rotate refresh token and issue new access token |
 | `POST` | `/auth/logout` | Revoke a session |
+| `POST` | `/auth/logout-all` | Revoke every session for the current user |
 | `GET` | `/auth/me` | Get current user by forwarded identity |
 | `PATCH` | `/auth/me/preferences` | Update current user preferences |
 | `GET` | `/health/live` | Liveness |
