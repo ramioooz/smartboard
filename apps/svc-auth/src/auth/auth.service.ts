@@ -1,8 +1,15 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { AuthProvider, User } from '@prisma/client';
-import type { UserPreferencesSchema } from '@smartboard/shared';
+import type {
+  OidcCallbackQuery,
+  OidcCallbackResult,
+  OidcSessionResult,
+  OidcStartResult,
+  UserPreferencesSchema,
+} from '@smartboard/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import type { ExternalIdentity, SessionMetadata } from './identity.types';
+import { OidcService } from './oidc.service';
 import { SessionService } from './session.service';
 import { TokenService } from './token.service';
 
@@ -20,6 +27,7 @@ export interface LoginResult {
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly oidcService: OidcService,
     private readonly sessionService: SessionService,
     private readonly tokenService: TokenService,
   ) {}
@@ -35,6 +43,36 @@ export class AuthService {
     const email = process.env['DEV_DEFAULT_EMAIL'] ?? 'dev@local';
     const identity = this.resolveDevIdentity(email);
     return this.createSessionFromIdentity(identity, metadata);
+  }
+
+  async startOidc(returnTo?: string, metadata?: SessionMetadata): Promise<OidcStartResult<User>> {
+    const normalizedReturnTo = this.oidcService.normalizeReturnTo(returnTo);
+    if (process.env['DEV_BYPASS_AUTH'] === 'true') {
+      const session = await this.createSession(metadata);
+      return {
+        mode: 'session',
+        redirectTo: normalizedReturnTo,
+        ...session,
+      };
+    }
+
+    return {
+      mode: 'redirect',
+      authorizationUrl: this.oidcService.buildAuthorizationUrl(normalizedReturnTo),
+    };
+  }
+
+  async completeOidcCallback(
+    query: OidcCallbackQuery,
+    metadata?: SessionMetadata,
+  ): Promise<OidcCallbackResult<User>> {
+    const { identity, returnTo } = await this.oidcService.exchangeCodeForIdentity(query);
+    const session = await this.createSessionFromIdentity(identity, metadata);
+
+    return {
+      redirectTo: returnTo,
+      ...session,
+    };
   }
 
   async refreshSession(refreshToken: string): Promise<LoginResult> {

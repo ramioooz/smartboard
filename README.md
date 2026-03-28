@@ -371,9 +371,9 @@ Fine-grained per-route limits enforced by `@nestjs/throttler` with Redis storage
 | `short`   | 20 req    | 1 s    | All routes (global default)     |
 | `medium`  | 300 req   | 1 min  | All routes (global default)     |
 | `long`    | 5 000 req | 1 hr   | All routes (global default)     |
-| `short`   | 5 req     | 15 min | `POST /api/auth/login` and `POST /api/auth/session` override |
-| `medium`  | 10 req    | 15 min | `POST /api/auth/login` and `POST /api/auth/session` override |
-| `long`    | 30 req    | 24 hr  | `POST /api/auth/login` and `POST /api/auth/session` override |
+| `short`   | 5 req     | 15 min | `POST /api/auth/login`, `POST /api/auth/session`, `GET /api/auth/oidc/start` override |
+| `medium`  | 10 req    | 15 min | `POST /api/auth/login`, `POST /api/auth/session`, `GET /api/auth/oidc/start` override |
+| `long`    | 30 req    | 24 hr  | `POST /api/auth/login`, `POST /api/auth/session`, `GET /api/auth/oidc/start` override |
 | *(skip)*  | —         | —      | `/health/*`                     |
 
 Returns **429** with `Retry-After`, `X-RateLimit-Limit-*`, and `X-RateLimit-Remaining-*` headers.

@@ -1,7 +1,15 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Query, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import { Throttle, minutes, hours } from '@nestjs/throttler';
-import type { ApiOk, LogoutSession, RefreshSession } from '@smartboard/shared';
+import type {
+  ApiOk,
+  LogoutSession,
+  OidcCallbackQuery,
+  OidcCallbackResult,
+  OidcStartQuery,
+  OidcStartResult,
+  RefreshSession,
+} from '@smartboard/shared';
 import { Public } from '../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import {
@@ -95,6 +103,50 @@ export class AuthController {
     const response = await this.authService.post<ApiOk<SessionResponse>>('/auth/session', {});
     this.setSessionCookies(reply, response.data);
     return response;
+  }
+
+  @Throttle({
+    short:  { limit: 5,  ttl: minutes(15) },
+    medium: { limit: 10, ttl: minutes(15) },
+    long:   { limit: 30, ttl: hours(24)   },
+  })
+  @Public()
+  @Get('oidc/start')
+  async startOidc(
+    @Query() query: OidcStartQuery,
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
+    const path = query.returnTo
+      ? `/auth/oidc/start?returnTo=${encodeURIComponent(query.returnTo)}`
+      : '/auth/oidc/start';
+    const response = await this.authService.get<ApiOk<OidcStartResult<unknown>>>(path);
+
+    if (response.data.mode === 'session') {
+      this.setSessionCookies(reply, response.data);
+      return reply.redirect(302, response.data.redirectTo);
+    }
+
+    return reply.redirect(302, response.data.authorizationUrl);
+  }
+
+  @Public()
+  @Get('oidc/callback')
+  async completeOidcCallback(
+    @Query() query: OidcCallbackQuery,
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
+    const params = new URLSearchParams();
+    if (query.code) params.set('code', query.code);
+    if (query.state) params.set('state', query.state);
+    if (query.error) params.set('error', query.error);
+    if (query.error_description) params.set('error_description', query.error_description);
+
+    const response = await this.authService.get<ApiOk<OidcCallbackResult<unknown>>>(
+      `/auth/oidc/callback?${params.toString()}`,
+    );
+
+    this.setSessionCookies(reply, response.data);
+    return reply.redirect(302, response.data.redirectTo);
   }
 
   @Throttle({
