@@ -3,6 +3,7 @@ import type { FastifyReply } from 'fastify';
 import { Throttle, minutes, hours } from '@nestjs/throttler';
 import type {
   ApiOk,
+  LogoutAllSessions,
   LogoutSession,
   OidcCallbackQuery,
   OidcCallbackResult,
@@ -179,6 +180,20 @@ export class AuthController {
     const response = await this.authService.post<ApiOk<{ success: true }>>('/auth/logout', {
       sessionId,
     });
+    this.clearSessionCookies(reply);
+    return response;
+  }
+
+  @Post('logout-all')
+  @HttpCode(200)
+  async logoutAll(
+    @Body() body: LogoutAllSessions,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<ApiOk<{ success: true; sessionsRevoked: number }>> {
+    const response = await this.authService.post<ApiOk<{ success: true; sessionsRevoked: number }>>(
+      '/auth/logout-all',
+      body,
+    );
     this.clearSessionCookies(reply);
     return response;
   }

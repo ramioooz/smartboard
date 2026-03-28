@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Patch, Post, Query } from '@nestjs/common';
 import type {
   ApiOk,
+  LogoutAllSessions,
   LogoutSession,
   OidcCallbackQuery,
   OidcCallbackResult,
@@ -12,6 +13,7 @@ import type {
 import {
   DevLoginSchema,
   LogoutSessionSchema,
+  LogoutAllSessionsSchema,
   OidcCallbackQuerySchema,
   OidcStartQuerySchema,
   RefreshSessionSchema,
@@ -100,6 +102,16 @@ export class AuthController {
   ): Promise<ApiOk<{ success: true }>> {
     await this.authService.logout(body.sessionId);
     return { ok: true, data: { success: true } };
+  }
+
+  @Post('logout-all')
+  @HttpCode(200)
+  async logoutAll(
+    @Headers('x-user-id') userId: string,
+    @Body(new ZodValidationPipe(LogoutAllSessionsSchema)) _body: LogoutAllSessions,
+  ): Promise<ApiOk<{ success: true; sessionsRevoked: number }>> {
+    const result = await this.authService.logoutAll(userId);
+    return { ok: true, data: { success: true, sessionsRevoked: result.sessionsRevoked } };
   }
 
   @Get('me')

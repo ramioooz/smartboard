@@ -48,7 +48,14 @@ export class SessionService {
       include: { session: true },
     });
 
-    if (!existing || !this.isRefreshTokenUsable(existing)) {
+    if (!existing) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    if (this.isRefreshTokenReuse(existing)) {
+      await this.revokeSession(existing.sessionId);
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+    if (!this.isRefreshTokenUsable(existing)) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -101,6 +108,41 @@ export class SessionService {
     ]);
   }
 
+  async revokeAllSessionsForUser(userId: string): Promise<number> {
+    const now = new Date();
+    const sessions = await this.prisma.session.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (sessions.length === 0) {
+      return 0;
+    }
+
+    const sessionIds = sessions.map((session) => session.id);
+    await this.prisma.$transaction([
+      this.prisma.session.updateMany({
+        where: {
+          id: { in: sessionIds },
+          revokedAt: null,
+        },
+        data: { revokedAt: now },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: {
+          sessionId: { in: sessionIds },
+          revokedAt: null,
+        },
+        data: { revokedAt: now },
+      }),
+    ]);
+
+    return sessionIds.length;
+  }
+
   private buildSessionExpiry(): Date {
     const ttlDays = Number(process.env['SESSION_TTL_DAYS'] ?? '30');
     const now = new Date();
@@ -122,5 +164,9 @@ export class SessionService {
     if (token.session.revokedAt) return false;
     if (token.session.expiresAt.getTime() <= now) return false;
     return true;
+  }
+
+  private isRefreshTokenReuse(token: RefreshToken & { session: Session }): boolean {
+    return Boolean(token.usedAt || token.replacedById) && !token.session.revokedAt;
   }
 }
