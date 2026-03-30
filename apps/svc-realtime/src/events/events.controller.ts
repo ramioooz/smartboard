@@ -21,7 +21,6 @@ export class EventsController {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
     res.writeHead(200);
 
     // Send a heartbeat comment every 20 s to keep proxies from closing the connection
