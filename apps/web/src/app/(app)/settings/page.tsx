@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
 import { Card, CardHeader, CardContent, Button } from '@smartboard/ui';
 import { ThemePicker } from '../../../components/settings/theme-picker';
 import { useUser, useUpdatePreferences } from '../../../hooks/useUser';
-import { useScheme } from '../../../hooks/useScheme';
 import type { UserPreferences } from '../../../lib/auth';
-import { writeAppearanceCookies } from '../../../lib/appearance';
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -17,7 +14,6 @@ const LANGUAGES = [
 
 export default function SettingsPage() {
   const { data: user } = useUser();
-  const { setTheme } = useTheme();
   const updatePrefs = useUpdatePreferences();
 
   const stored = user?.preferences as Partial<UserPreferences> | undefined;
@@ -41,14 +37,8 @@ export default function SettingsPage() {
     }
   }, [stored?.theme, stored?.scheme, stored?.language]);
 
-  // Sync scheme to html element on change
-  useScheme(themeScheme.scheme);
-
   function handleThemeChange(value: { theme: UserPreferences['theme']; scheme: UserPreferences['scheme'] }) {
     setThemeScheme(value);
-    // Instant preview
-    setTheme(value.theme);
-    document.documentElement.setAttribute('data-scheme', value.scheme);
   }
 
   async function handleSave() {
@@ -59,7 +49,6 @@ export default function SettingsPage() {
         scheme: themeScheme.scheme,
         language,
       });
-      writeAppearanceCookies(themeScheme.theme, themeScheme.scheme);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
     } catch {
