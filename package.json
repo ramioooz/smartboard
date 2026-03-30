@@ -16,6 +16,7 @@
     "test": "turbo run test",
     "test:e2e": "playwright test",
     "test:e2e:auth": "playwright test tests/e2e/auth",
+    "test:e2e:auth-api": "playwright test tests/e2e/auth/auth-api.spec.ts",
     "clean": "turbo run clean && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "db:migrate": "turbo run db:migrate",
     "db:generate": "turbo run db:generate",
