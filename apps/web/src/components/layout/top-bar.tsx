@@ -94,7 +94,7 @@ export function TopBar() {
           <>
             <button
               type="button"
-              onClick={() => startLogout('/')}
+              onClick={() => startLogout(`${window.location.origin}/signed-out`)}
               className="rounded-[calc(var(--radius)-6px)] border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
             >
               Sign out

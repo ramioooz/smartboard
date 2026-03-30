@@ -4,6 +4,10 @@ import { RequestContextService } from '../context/request-context.service';
 import { requireEnv } from '@smartboard/shared';
 
 const REALTIME_SERVICE_URL = requireEnv('REALTIME_SERVICE_URL');
+const DEFAULT_CORS_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
 
 @Controller('realtime')
 export class RealtimeController {
@@ -16,6 +20,7 @@ export class RealtimeController {
   @Get('stream')
   async stream(
     @Headers('x-tenant-id') tenantId: string,
+    @Headers('origin') origin: string | undefined,
     @Res() reply: FastifyReply,
   ): Promise<void> {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
@@ -34,7 +39,10 @@ export class RealtimeController {
     raw.setHeader('Content-Type', 'text/event-stream');
     raw.setHeader('Cache-Control', 'no-cache');
     raw.setHeader('Connection', 'keep-alive');
-    raw.setHeader('Access-Control-Allow-Origin', '*');
+    if (origin && this.getAllowedOrigins().includes(origin)) {
+      raw.setHeader('Access-Control-Allow-Origin', origin);
+      raw.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     raw.writeHead(200);
 
     if (upstream.body) {
@@ -56,5 +64,18 @@ export class RealtimeController {
     } else {
       raw.end();
     }
+  }
+
+  private getAllowedOrigins(): string[] {
+    const configured = process.env['CORS_ORIGINS']
+      ?.split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (configured && configured.length > 0) {
+      return configured;
+    }
+
+    return DEFAULT_CORS_ORIGINS;
   }
 }
