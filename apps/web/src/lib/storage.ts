@@ -1,5 +1,5 @@
 /**
- * Best-effort cleanup for legacy browser auth keys from the pre-cookie flow.
+ * Best-effort cleanup for legacy browser auth keys from the old token-in-storage flow.
  */
 
 function isBrowser(): boolean {
