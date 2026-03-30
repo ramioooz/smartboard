@@ -20,15 +20,12 @@ export interface User {
   updatedAt: string;
 }
 
-interface LoginResult {
+interface SessionBootstrapResult {
   user: User;
-  sessionId: string;
-  refreshToken: string;
-  token: string;
 }
 
 export async function bootstrapSession(): Promise<User> {
-  const res = await apiFetch<ApiOk<LoginResult>>('/api/auth/session', {
+  const res = await apiFetch<ApiOk<SessionBootstrapResult>>('/api/auth/session', {
     method: 'POST',
     body: JSON.stringify({}),
   });
