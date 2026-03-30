@@ -32,6 +32,11 @@ interface MicrosoftUserInfo {
   name?: string;
 }
 
+const DEFAULT_WEB_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
 @Injectable()
 export class OidcService {
   private jwksTenantId?: string;
@@ -100,11 +105,24 @@ export class OidcService {
   }
 
   normalizeReturnTo(returnTo?: string): string {
-    if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) {
+    if (!returnTo) {
       return '/';
     }
 
-    return returnTo;
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+
+    try {
+      const target = new URL(returnTo);
+      if (this.getAllowedWebOrigins().includes(target.origin)) {
+        return target.toString();
+      }
+    } catch {
+      // fall through to default below
+    }
+
+    return '/';
   }
 
   buildLogoutUrl(returnTo?: string): string {
@@ -215,5 +233,18 @@ export class OidcService {
     }
 
     return this.jwks;
+  }
+
+  private getAllowedWebOrigins(): string[] {
+    const configured = process.env['WEB_APP_ORIGINS']
+      ?.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+    if (configured && configured.length > 0) {
+      return configured;
+    }
+
+    return DEFAULT_WEB_ORIGINS;
   }
 }

@@ -30,6 +30,7 @@ interface LoginResult {
 export async function bootstrapSession(): Promise<User> {
   const res = await apiFetch<ApiOk<LoginResult>>('/api/auth/session', {
     method: 'POST',
+    body: JSON.stringify({}),
   });
   return res.data.user;
 }
@@ -51,7 +52,12 @@ export async function patchPreferences(prefs: UserPreferences): Promise<User> {
   return res.data;
 }
 
-export function startLogout(returnTo = '/'): void {
+export function startLogin(returnTo = '/'): void {
+  const target = `${getGatewayUrl()}/api/auth/oidc/start?returnTo=${encodeURIComponent(returnTo)}`;
+  window.location.assign(target);
+}
+
+export function startLogout(returnTo = '/signed-out'): void {
   const target = `${getGatewayUrl()}/api/auth/oidc/logout?returnTo=${encodeURIComponent(returnTo)}`;
   window.location.assign(target);
 }

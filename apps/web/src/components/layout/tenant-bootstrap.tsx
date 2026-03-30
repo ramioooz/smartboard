@@ -146,7 +146,7 @@ export function useTenant() {
 
 export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const qc = useQueryClient();
-  const { data: user, isLoading: isUserLoading } = useUser();
+  const { data: user, isLoading: isUserLoading, isError: isUserError } = useUser();
   const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>('loading');
   const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
 
@@ -236,6 +236,10 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
 
   if (isUserLoading) {
     return <LoadingState label="Loading account…" />;
+  }
+
+  if (isUserError) {
+    return <LoadingState label="Loading account failed." />;
   }
 
   if (tenantsQuery.isLoading || (selectionState === 'loading' && !!user)) {

@@ -20,6 +20,21 @@ import type { FastifyRequest } from 'fastify';
  */
 @Injectable()
 export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
+  override async canActivate(context: import('@nestjs/common').ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest<FastifyRequest>();
+    const path = req.routeOptions?.url ?? req.url ?? '';
+
+    if (
+      process.env['DEV_BYPASS_AUTH'] === 'true' &&
+      req.method === 'POST' &&
+      (path === '/auth/session' || path === '/api/auth/session')
+    ) {
+      return true;
+    }
+
+    return super.canActivate(context);
+  }
+
   protected override async getTracker(req: Record<string, unknown>): Promise<string> {
     const fastifyReq = req as unknown as FastifyRequest;
     // ips[] is populated by Fastify from X-Forwarded-For when trustProxy:true.

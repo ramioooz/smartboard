@@ -33,6 +33,11 @@ interface SessionResponse {
   token: string;
 }
 
+const DEFAULT_WEB_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -42,7 +47,7 @@ export class AuthController {
 
   private setSessionCookies(reply: FastifyReply, data: SessionResponse): void {
     const secure = shouldUseSecureCookies();
-    reply.header('Set-Cookie', [
+    reply.raw.setHeader('Set-Cookie', [
       serializeCookie(ACCESS_TOKEN_COOKIE, data.token, {
         path: '/',
         httpOnly: true,
@@ -62,18 +67,31 @@ export class AuthController {
 
   private clearSessionCookies(reply: FastifyReply): void {
     const secure = shouldUseSecureCookies();
-    reply.header('Set-Cookie', [
+    reply.raw.setHeader('Set-Cookie', [
       clearCookie(ACCESS_TOKEN_COOKIE, secure),
       clearCookie(REFRESH_TOKEN_COOKIE, secure),
     ]);
   }
 
   private normalizeReturnTo(returnTo?: string): string {
-    if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) {
+    if (!returnTo) {
       return '/';
     }
 
-    return returnTo;
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+
+    try {
+      const target = new URL(returnTo);
+      if (this.getAllowedWebOrigins().includes(target.origin)) {
+        return target.toString();
+      }
+    } catch {
+      // fall through to default below
+    }
+
+    return '/';
   }
 
   // Override all three global throttlers with brute-force-resistant limits:
@@ -92,11 +110,11 @@ export class AuthController {
   @Post('session')
   @HttpCode(200)
   async createSession(
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ): Promise<ApiOk<SessionResponse>> {
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
     const response = await this.authService.post<ApiOk<SessionResponse>>('/auth/session', {});
     this.setSessionCookies(reply, response.data);
-    return response;
+    return reply.code(200).send(response);
   }
 
   @Throttle({
@@ -177,42 +195,42 @@ export class AuthController {
   @HttpCode(200)
   async refreshSession(
     @Body() body: Partial<RefreshSession>,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ): Promise<ApiOk<SessionResponse>> {
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
     const refreshToken = body.refreshToken ?? this.readCookie(reply.request.headers.cookie, REFRESH_TOKEN_COOKIE);
     const response = await this.authService.post<ApiOk<SessionResponse>>('/auth/session/refresh', {
       refreshToken,
     });
     this.setSessionCookies(reply, response.data);
-    return response;
+    return reply.code(200).send(response);
   }
 
   @Post('logout')
   @HttpCode(200)
   async logout(
     @Body() body: Partial<LogoutSession>,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ): Promise<ApiOk<{ success: true }>> {
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
     const sessionId = body.sessionId ?? this.rcs.getOrUndefined()?.sessionId;
     const response = await this.authService.post<ApiOk<{ success: true }>>('/auth/logout', {
       sessionId,
     });
     this.clearSessionCookies(reply);
-    return response;
+    return reply.code(200).send(response);
   }
 
   @Post('logout-all')
   @HttpCode(200)
   async logoutAll(
     @Body() body: LogoutAllSessions,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ): Promise<ApiOk<{ success: true; sessionsRevoked: number }>> {
+    @Res() reply: FastifyReply,
+  ): Promise<FastifyReply> {
     const response = await this.authService.post<ApiOk<{ success: true; sessionsRevoked: number }>>(
       '/auth/logout-all',
       body,
     );
     this.clearSessionCookies(reply);
-    return response;
+    return reply.code(200).send(response);
   }
 
   @Get('me')
@@ -236,5 +254,18 @@ export class AuthController {
     }
 
     return undefined;
+  }
+
+  private getAllowedWebOrigins(): string[] {
+    const configured = process.env['WEB_APP_ORIGINS']
+      ?.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+    if (configured && configured.length > 0) {
+      return configured;
+    }
+
+    return DEFAULT_WEB_ORIGINS;
   }
 }
