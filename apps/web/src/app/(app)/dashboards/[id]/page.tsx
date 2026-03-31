@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
@@ -33,6 +33,108 @@ const DEFAULT_CONFIG: Record<Panel['type'], Record<string, unknown>> = {
   text: { content: 'Add your notes here…' },
 };
 
+const DESKTOP_COLS = 12;
+const DEFAULT_PANEL_W = 4;
+const DEFAULT_PANEL_H = 3;
+const BREAKPOINT_COLS = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 } as const;
+type BreakpointName = keyof typeof BREAKPOINT_COLS;
+
+function collides(a: Layout, b: Layout) {
+  return !(
+    a.x + a.w <= b.x ||
+    b.x + b.w <= a.x ||
+    a.y + a.h <= b.y ||
+    b.y + b.h <= a.y
+  );
+}
+
+function findNextPanelLayout(panels: Panel[]): Layout {
+  const placed = panels.map((panel) => ({ ...panel.layout, i: panel.id }));
+
+  for (let y = 0; y < 10_000; y += 1) {
+    for (let x = 0; x <= DESKTOP_COLS - DEFAULT_PANEL_W; x += 1) {
+      const candidate: Layout = {
+        i: '',
+        x,
+        y,
+        w: DEFAULT_PANEL_W,
+        h: DEFAULT_PANEL_H,
+      };
+
+      if (placed.every((panel) => !collides(candidate, panel))) {
+        return candidate;
+      }
+    }
+  }
+
+  return { i: '', x: 0, y: Infinity, w: DEFAULT_PANEL_W, h: DEFAULT_PANEL_H };
+}
+
+function sortPanelsForResponsiveLayout(panels: Panel[]) {
+  return [...panels].sort((a, b) => {
+    if (a.layout.y !== b.layout.y) return a.layout.y - b.layout.y;
+    if (a.layout.x !== b.layout.x) return a.layout.x - b.layout.x;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+function responsivePanelWidth(panel: Panel, breakpoint: BreakpointName, cols: number) {
+  if (breakpoint === 'xxs') {
+    return cols;
+  }
+
+  if (breakpoint === 'xs') {
+    return Math.min(4, cols);
+  }
+
+  if (breakpoint === 'sm') {
+    return cols;
+  }
+
+  if (breakpoint === 'md') {
+    return Math.min(Math.max(panel.layout.w, 5), cols);
+  }
+
+  return Math.min(panel.layout.w, cols);
+}
+
+function deriveResponsiveLayout(
+  panels: Panel[],
+  breakpoint: BreakpointName,
+  cols: number,
+): Layout[] {
+  const ordered = sortPanelsForResponsiveLayout(panels);
+  const layout: Layout[] = [];
+
+  let cursorX = 0;
+  let cursorY = 0;
+  let rowHeight = 0;
+
+  for (const panel of ordered) {
+    const width = responsivePanelWidth(panel, breakpoint, cols);
+    const height = panel.layout.h;
+
+    if (cursorX + width > cols) {
+      cursorX = 0;
+      cursorY += rowHeight;
+      rowHeight = 0;
+    }
+
+    layout.push({
+      i: panel.id,
+      x: cursorX,
+      y: cursorY,
+      w: width,
+      h: height,
+    });
+
+    cursorX += width;
+    rowHeight = Math.max(rowHeight, height);
+  }
+
+  return layout;
+}
+
 function PanelContent({ panel }: { panel: Panel }) {
   switch (panel.type) {
     case 'kpi': return <KpiPanel config={panel.config} />;
@@ -54,6 +156,7 @@ export default function DashboardBuilderPage() {
   const [dirty, setDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const currentBreakpointRef = useRef<BreakpointName>('lg');
 
   // Use server panels on first load, local state after any edit
   const activePanels: Panel[] = panels ?? (dashboard?.panels ?? []);
@@ -63,12 +166,17 @@ export default function DashboardBuilderPage() {
     // handled by activePanels fallback above
   }
 
-  const layouts = {
+  const layouts: Record<BreakpointName, Layout[]> = {
     lg: activePanels.map((p) => ({ ...p.layout, i: p.id })),
+    md: deriveResponsiveLayout(activePanels, 'md', BREAKPOINT_COLS.md),
+    sm: deriveResponsiveLayout(activePanels, 'sm', BREAKPOINT_COLS.sm),
+    xs: deriveResponsiveLayout(activePanels, 'xs', BREAKPOINT_COLS.xs),
+    xxs: deriveResponsiveLayout(activePanels, 'xxs', BREAKPOINT_COLS.xxs),
   };
 
   const handleLayoutChange = useCallback(
     (currentLayout: Layout[]) => {
+      if (currentBreakpointRef.current !== 'lg') return;
       if (panels === null && !dashboard) return;
       const base = panels ?? dashboard?.panels ?? [];
       const updated = base.map((p) => {
@@ -83,15 +191,16 @@ export default function DashboardBuilderPage() {
   );
 
   function addPanel(type: Panel['type']) {
+    const base = panels ?? dashboard?.panels ?? [];
+    const layout = findNextPanelLayout(base);
     const newPanel: Panel = {
       id: uuidv4(),
       type,
       title: PANEL_TYPES.find((t) => t.type === type)?.label ?? type,
       config: DEFAULT_CONFIG[type],
-      layout: { i: '', x: 0, y: Infinity, w: 4, h: 3 },
+      layout,
     };
     newPanel.layout.i = newPanel.id;
-    const base = panels ?? dashboard?.panels ?? [];
     setPanels([...base, newPanel]);
     setDirty(true);
     setShowAddMenu(false);
@@ -205,10 +314,14 @@ export default function DashboardBuilderPage() {
             className="layout"
             layouts={layouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+            cols={BREAKPOINT_COLS}
+            compactType="horizontal"
             rowHeight={80}
             margin={[12, 12]}
             draggableHandle=".drag-handle"
+            onBreakpointChange={(breakpoint) => {
+              currentBreakpointRef.current = breakpoint as BreakpointName;
+            }}
             onLayoutChange={handleLayoutChange}
           >
             {activePanels.map((panel) => (
