@@ -2,7 +2,7 @@
 
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { UserPreferences } from '../lib/auth';
 
 export function Providers({
@@ -12,6 +12,16 @@ export function Providers({
   children: React.ReactNode;
   initialTheme: UserPreferences['theme'];
 }) {
+  useEffect(() => {
+    if (window.location.hostname !== 'localhost') {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.hostname = '127.0.0.1';
+    window.location.replace(url.toString());
+  }, []);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({

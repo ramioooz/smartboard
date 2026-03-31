@@ -30,6 +30,7 @@ Dataset metadata management and ingestion orchestration.
 | `DATABASE_URL` | Points to `datasets` schema |
 | `REDIS_URL` | BullMQ connection |
 | `MINIO_ENDPOINT` | MinIO host |
+| `MINIO_PUBLIC_ENDPOINT` | Browser-reachable MinIO host for presigned URLs |
 | `MINIO_BUCKET_DATASETS` | MinIO bucket name |
 
 ## How to Run
