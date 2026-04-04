@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Headers, HttpCode, NotFoundException, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, NotFoundException, Param, Post, Query } from '@nestjs/common';
 import type { ApiOk, CreateDataset, Pagination, PagedResult } from '@smartboard/shared';
 import { CreateDatasetSchema, PaginationSchema } from '@smartboard/shared';
 import { ZodValidationPipe } from '@smartboard/nest-common';
@@ -40,5 +40,15 @@ export class DatasetsController {
     const dataset = await this.datasetsService.findOne(id, tenantId);
     if (!dataset) throw new NotFoundException(`Dataset ${id} not found`);
     return { ok: true, data: dataset };
+  }
+
+  @Delete(':id')
+  async remove(
+    @Param('id') id: string,
+    @Headers('x-tenant-id') tenantId: string,
+  ): Promise<ApiOk<{ id: string }>> {
+    if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
+    await this.datasetsService.remove(id, tenantId);
+    return { ok: true, data: { id } };
   }
 }

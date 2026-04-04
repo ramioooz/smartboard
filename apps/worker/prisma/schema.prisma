@@ -23,3 +23,17 @@ model JobRecord {
   @@index([datasetId])
   @@schema("analytics")
 }
+
+model Event {
+  id         String   @id @default(cuid())
+  tenantId   String
+  datasetId  String
+  metric     String
+  value      Float
+  timestamp  DateTime
+  properties Json     @default("{}")
+
+  @@index([tenantId, datasetId, metric, timestamp])
+  @@map("events")
+  @@schema("analytics")
+}

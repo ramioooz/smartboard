@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTenant } from '@/components/layout/tenant-bootstrap';
-import { createDataset, listDatasets, uploadFile } from '@/lib/datasets';
+import { createDataset, deleteDataset, listDatasets, uploadFile } from '@/lib/datasets';
 
 export function useDatasets() {
   const { currentTenant } = useTenant();
@@ -11,6 +11,13 @@ export function useDatasets() {
     queryKey: ['datasets', currentTenant.id],
     queryFn: () => listDatasets(),
     enabled: !!currentTenant.id,
+    refetchInterval: (query) => {
+      const items = query.state.data?.items ?? [];
+      const hasPending = items.some((dataset) =>
+        dataset.status === 'uploaded' || dataset.status === 'processing',
+      );
+      return hasPending ? 2_000 : false;
+    },
   });
 }
 
@@ -37,6 +44,21 @@ export function useCreateAndUploadDataset() {
       await uploadFile(uploadUrl, file);
 
       return dataset;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['datasets', currentTenant.id] });
+    },
+  });
+}
+
+export function useDeleteDataset() {
+  const queryClient = useQueryClient();
+  const { currentTenant } = useTenant();
+
+  return useMutation({
+    mutationFn: async (datasetId: string) => {
+      await deleteDataset(datasetId);
+      return datasetId;
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['datasets', currentTenant.id] });

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import { DatasetsService } from './datasets.service';
 
@@ -21,5 +21,10 @@ export class DatasetsController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ApiOk<unknown>> {
     return this.datasetsService.get<ApiOk<unknown>>(`/datasets/${id}`);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string): Promise<ApiOk<unknown>> {
+    return this.datasetsService.delete<ApiOk<unknown>>(`/datasets/${id}`);
   }
 }
