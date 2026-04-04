@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Button, Card, CardContent } from '@smartboard/ui';
-import { useDatasets, useCreateAndUploadDataset } from '@/hooks/useDatasets';
+import { useDatasets, useCreateAndUploadDataset, useDeleteDataset } from '@/hooks/useDatasets';
 import type { Dataset } from '@/lib/datasets';
 
 const STATUS_COLOURS: Record<Dataset['status'], string> = {
@@ -30,7 +30,17 @@ function StatusBadge({ status }: { status: Dataset['status'] }) {
   );
 }
 
-function DatasetCard({ dataset }: { dataset: Dataset }) {
+function DatasetCard({
+  dataset,
+  onDelete,
+  isDeleting,
+}: {
+  dataset: Dataset;
+  onDelete: (dataset: Dataset) => void;
+  isDeleting: boolean;
+}) {
+  const canDelete = dataset.status !== 'processing';
+
   return (
     <Card>
       <CardContent className="flex items-start justify-between gap-4 py-4">
@@ -47,7 +57,17 @@ function DatasetCard({ dataset }: { dataset: Dataset }) {
             <span>{new Date(dataset.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <StatusBadge status={dataset.status} />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={dataset.status} />
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={!canDelete || isDeleting}
+            onClick={() => onDelete(dataset)}
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -180,7 +200,21 @@ function UploadModal({ onClose }: { onClose: () => void }) {
 export default function DatasetsPage() {
   const [showModal, setShowModal] = useState(false);
   const { data, isLoading } = useDatasets();
+  const deleteMutation = useDeleteDataset();
   const datasets = data?.items ?? [];
+
+  async function handleDelete(dataset: Dataset) {
+    const confirmed = window.confirm(
+      `Delete dataset "${dataset.name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteMutation.mutateAsync(dataset.id);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Delete failed');
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -210,7 +244,12 @@ export default function DatasetsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {datasets.map((ds) => (
-            <DatasetCard key={ds.id} dataset={ds} />
+            <DatasetCard
+              key={ds.id}
+              dataset={ds}
+              onDelete={handleDelete}
+              isDeleting={deleteMutation.isPending && deleteMutation.variables === ds.id}
+            />
           ))}
         </div>
       )}

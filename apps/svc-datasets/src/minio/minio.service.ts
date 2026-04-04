@@ -54,4 +54,12 @@ export class MinioService implements OnModuleInit {
   async getObject(objectKey: string): Promise<NodeJS.ReadableStream> {
     return this.client.getObject(BUCKET, objectKey);
   }
+
+  async removeObject(objectKey: string): Promise<void> {
+    try {
+      await this.client.removeObject(BUCKET, objectKey);
+    } catch (error) {
+      this.logger.warn(`Failed to remove object ${objectKey}: ${String(error)}`);
+    }
+  }
 }

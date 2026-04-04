@@ -24,3 +24,16 @@ model Event {
   @@map("events")
   @@schema("analytics")
 }
+
+model JobRecord {
+  id         String    @id @default(cuid())
+  tenantId   String
+  datasetId  String
+  status     String    @default("pending")
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([datasetId])
+  @@schema("analytics")
+}
