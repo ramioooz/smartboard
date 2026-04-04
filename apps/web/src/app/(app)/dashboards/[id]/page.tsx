@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
@@ -12,7 +12,9 @@ import { TimeseriesPanel } from '../../../../components/panels/timeseries-panel'
 import { TablePanel } from '../../../../components/panels/table-panel';
 import { TextPanel } from '../../../../components/panels/text-panel';
 import { useDashboard, useSaveLayout } from '../../../../hooks/useDashboards';
+import { useDatasets } from '../../../../hooks/useDatasets';
 import type { Panel } from '../../../../lib/dashboards';
+import type { Dataset } from '../../../../lib/datasets';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -27,9 +29,9 @@ const PANEL_TYPES: { type: Panel['type']; label: string }[] = [
 ];
 
 const DEFAULT_CONFIG: Record<Panel['type'], Record<string, unknown>> = {
-  kpi: { label: 'Metric', value: '0', unit: '' },
-  timeseries: { metric: 'value' },
-  table: { columns: ['Metric', 'Value', 'Timestamp'], rows: [] },
+  kpi: { label: 'Metric', unit: '', metric: 'value', bucket: 'hour', aggregation: 'latest' },
+  timeseries: { metric: 'value', bucket: 'hour' },
+  table: { metric: 'value', bucket: 'hour' },
   text: { content: 'Add your notes here…' },
 };
 
@@ -135,13 +137,196 @@ function deriveResponsiveLayout(
   return layout;
 }
 
-function PanelContent({ panel }: { panel: Panel }) {
+function PanelContent({
+  panel,
+  onSelectDataset,
+}: {
+  panel: Panel;
+  onSelectDataset?: () => void;
+}) {
   switch (panel.type) {
-    case 'kpi': return <KpiPanel config={panel.config} />;
-    case 'timeseries': return <TimeseriesPanel config={panel.config} />;
-    case 'table': return <TablePanel config={panel.config} />;
+    case 'kpi': return <KpiPanel config={panel.config} onSelectDataset={onSelectDataset} />;
+    case 'timeseries': return <TimeseriesPanel config={panel.config} onSelectDataset={onSelectDataset} />;
+    case 'table': return <TablePanel config={panel.config} onSelectDataset={onSelectDataset} />;
     case 'text': return <TextPanel config={panel.config} />;
   }
+}
+
+function textValue(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function PanelSettingsModal({
+  panel,
+  datasets,
+  onClose,
+  onSave,
+}: {
+  panel: Panel;
+  datasets: Dataset[];
+  onClose: () => void;
+  onSave: (panel: Panel) => void;
+}) {
+  const [title, setTitle] = useState(panel.title);
+  const [datasetId, setDatasetId] = useState(panel.datasetId ?? textValue(panel.config['datasetId']));
+  const [metric, setMetric] = useState(textValue(panel.config['metric'], 'value'));
+  const [bucket, setBucket] = useState(textValue(panel.config['bucket'], 'hour'));
+  const [label, setLabel] = useState(textValue(panel.config['label'], panel.title));
+  const [unit, setUnit] = useState(textValue(panel.config['unit']));
+  const [aggregation, setAggregation] = useState(textValue(panel.config['aggregation'], 'latest'));
+  const [content, setContent] = useState(textValue(panel.config['content'], ''));
+  const readyDatasets = datasets.filter((dataset) => dataset.status === 'ready');
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    const nextConfig = { ...panel.config };
+    const normalizedDatasetId = datasetId || undefined;
+
+    if (panel.type === 'text') {
+      nextConfig['content'] = content;
+    } else {
+      nextConfig['metric'] = metric || 'value';
+      nextConfig['bucket'] = bucket;
+
+      if (normalizedDatasetId) nextConfig['datasetId'] = normalizedDatasetId;
+      else delete nextConfig['datasetId'];
+    }
+
+    if (panel.type === 'kpi') {
+      nextConfig['label'] = label || title;
+      nextConfig['unit'] = unit;
+      nextConfig['aggregation'] = aggregation;
+    }
+
+    onSave({
+      ...panel,
+      title: title.trim() || panel.title,
+      datasetId: normalizedDatasetId,
+      config: nextConfig,
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
+        <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">Edit Panel</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[var(--text)]">Title</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            />
+          </div>
+
+          {panel.type !== 'text' && (
+            <>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">Dataset</label>
+                <select
+                  value={datasetId}
+                  onChange={(e) => setDatasetId(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                >
+                  <option value="">Select dataset</option>
+                  {readyDatasets.map((dataset) => (
+                    <option key={dataset.id} value={dataset.id}>
+                      {dataset.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Metric</label>
+                  <input
+                    value={metric}
+                    onChange={(e) => setMetric(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Bucket</label>
+                  <select
+                    value={bucket}
+                    onChange={(e) => setBucket(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                  >
+                    {['hour', 'day', 'week', 'month'].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+
+          {panel.type === 'kpi' && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Label</label>
+                  <input
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Unit</label>
+                  <input
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">Aggregation</label>
+                <select
+                  value={aggregation}
+                  onChange={(e) => setAggregation(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                >
+                  <option value="latest">Latest Average</option>
+                  <option value="avg">Average</option>
+                  <option value="max">Max</option>
+                  <option value="min">Min</option>
+                  <option value="count">Total Count</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {panel.type === 'text' && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-[var(--text)]">Content</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={5}
+                className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              Apply
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardBuilderPage() {
@@ -151,12 +336,15 @@ export default function DashboardBuilderPage() {
 
   const { data: dashboard, isLoading, error } = useDashboard(id);
   const saveLayout = useSaveLayout();
+  const { data: datasetsData } = useDatasets();
 
   const [panels, setPanels] = useState<Panel[] | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [editingPanelId, setEditingPanelId] = useState<string | null>(null);
   const currentBreakpointRef = useRef<BreakpointName>('lg');
+  const datasets = datasetsData?.items ?? [];
 
   // Use server panels on first load, local state after any edit
   const activePanels: Panel[] = panels ?? (dashboard?.panels ?? []);
@@ -173,6 +361,10 @@ export default function DashboardBuilderPage() {
     xs: deriveResponsiveLayout(activePanels, 'xs', BREAKPOINT_COLS.xs),
     xxs: deriveResponsiveLayout(activePanels, 'xxs', BREAKPOINT_COLS.xxs),
   };
+  const editingPanel = useMemo(
+    () => activePanels.find((panel) => panel.id === editingPanelId) ?? null,
+    [activePanels, editingPanelId],
+  );
 
   const handleLayoutChange = useCallback(
     (currentLayout: Layout[]) => {
@@ -209,6 +401,13 @@ export default function DashboardBuilderPage() {
   function deletePanel(panelId: string) {
     const base = panels ?? dashboard?.panels ?? [];
     setPanels(base.filter((p) => p.id !== panelId));
+    setDirty(true);
+  }
+
+  function updatePanel(updatedPanel: Panel) {
+    const base = panels ?? dashboard?.panels ?? [];
+    setPanels(base.map((panel) => (panel.id === updatedPanel.id ? updatedPanel : panel)));
+    setEditingPanelId(null);
     setDirty(true);
   }
 
@@ -328,14 +527,23 @@ export default function DashboardBuilderPage() {
               <PanelWrapper
                 key={panel.id}
                 title={panel.title}
+                onEdit={() => setEditingPanelId(panel.id)}
                 onDelete={() => deletePanel(panel.id)}
               >
-                <PanelContent panel={panel} />
+                <PanelContent panel={panel} onSelectDataset={() => setEditingPanelId(panel.id)} />
               </PanelWrapper>
             ))}
           </ResponsiveGridLayout>
         )}
       </div>
+      {editingPanel && (
+        <PanelSettingsModal
+          panel={editingPanel}
+          datasets={datasets}
+          onClose={() => setEditingPanelId(null)}
+          onSave={updatePanel}
+        />
+      )}
     </div>
   );
 }

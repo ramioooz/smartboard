@@ -20,6 +20,14 @@ export interface CreateDatasetResult {
   uploadUrl: string;
 }
 
+export interface TimeseriesRow {
+  bucket: string;
+  avg: number;
+  min: number;
+  max: number;
+  count: number;
+}
+
 function ctx() {
   return { tenantId: getTenantId() ?? undefined };
 }
@@ -50,6 +58,13 @@ export async function getDataset(id: string): Promise<Dataset> {
   return res.data;
 }
 
+export async function deleteDataset(id: string): Promise<void> {
+  await apiFetch<ApiOk<{ id: string }>>(`/api/datasets/${id}`, {
+    method: 'DELETE',
+    ...ctx(),
+  });
+}
+
 /** Upload a file directly to MinIO using the presigned PUT URL. */
 export async function uploadFile(uploadUrl: string, file: File): Promise<void> {
   const res = await fetch(uploadUrl, {
@@ -69,7 +84,7 @@ export async function fetchTimeseries(params: {
   from: string;
   to: string;
   bucket?: string;
-}): Promise<{ bucket: string; avg: number; min: number; max: number; count: number }[]> {
+}): Promise<TimeseriesRow[]> {
   const qs = new URLSearchParams({
     datasetId: params.datasetId,
     metric: params.metric,
@@ -78,7 +93,7 @@ export async function fetchTimeseries(params: {
     bucket: params.bucket ?? 'hour',
   }).toString();
 
-  const res = await apiFetch<ApiOk<{ bucket: string; avg: number; min: number; max: number; count: number }[]>>(
+  const res = await apiFetch<ApiOk<TimeseriesRow[]>>(
     `/api/analytics/timeseries?${qs}`,
     ctx(),
   );

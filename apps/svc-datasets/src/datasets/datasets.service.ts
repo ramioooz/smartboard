@@ -92,4 +92,17 @@ export class DatasetsService implements OnModuleInit, OnModuleDestroy {
   async findOne(id: string, tenantId: string): Promise<Dataset | null> {
     return this.prisma.dataset.findFirst({ where: { id, tenantId } });
   }
+
+  async remove(id: string, tenantId: string): Promise<void> {
+    const dataset = await this.findOne(id, tenantId);
+    if (!dataset) return;
+
+    if (dataset.s3Key) {
+      await this.minio.removeObject(dataset.s3Key);
+    }
+
+    await this.prisma.dataset.delete({
+      where: { id: dataset.id },
+    });
+  }
 }
