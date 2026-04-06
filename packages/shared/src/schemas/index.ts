@@ -113,7 +113,7 @@ export const PanelSchema = z.object({
   id: z.string().uuid(),
   type: PanelTypeSchema,
   title: z.string().max(200),
-  datasetId: z.string().uuid().optional(),
+  datasetId: IdSchema.optional(),
   config: z.record(z.unknown()).default({}),
   layout: PanelLayoutSchema,
 });
@@ -143,3 +143,8 @@ export const TimeseriesQuerySchema = z.object({
   bucket: z.enum(['minute', 'hour', 'day', 'week', 'month']).default('hour'),
 });
 export type TimeseriesQuery = z.infer<typeof TimeseriesQuerySchema>;
+
+export const DatasetMetricsQuerySchema = z.object({
+  datasetId: IdSchema,
+});
+export type DatasetMetricsQuery = z.infer<typeof DatasetMetricsQuerySchema>;

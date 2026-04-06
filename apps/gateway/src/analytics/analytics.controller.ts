@@ -6,6 +6,12 @@ import { AnalyticsService } from './analytics.service';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @Get('metrics')
+  async metrics(@Query() query: Record<string, string>): Promise<ApiOk<unknown>> {
+    const qs = new URLSearchParams(query).toString();
+    return this.analyticsService.get<ApiOk<unknown>>(`/analytics/metrics?${qs}`);
+  }
+
   @Get('timeseries')
   async timeseries(@Query() query: Record<string, string>): Promise<ApiOk<unknown>> {
     const qs = new URLSearchParams(query).toString();

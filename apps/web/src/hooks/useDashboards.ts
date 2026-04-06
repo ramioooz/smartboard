@@ -53,6 +53,10 @@ export function useSaveLayout() {
     mutationFn: ({ id, panels }) => saveLayout(id, panels),
     onSuccess: (dashboard) => {
       qc.setQueryData(['dashboard', currentTenant.id, dashboard.id], dashboard);
+      qc.setQueryData<Dashboard[] | undefined>(['dashboards', currentTenant.id], (existing) =>
+        existing?.map((item) => (item.id === dashboard.id ? dashboard : item)),
+      );
+      void qc.invalidateQueries({ queryKey: ['dashboards', currentTenant.id] });
     },
   });
 }

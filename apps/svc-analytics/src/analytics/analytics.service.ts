@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { TimeseriesQuerySchema } from '@smartboard/shared';
+import type { DatasetMetricsQuerySchema, TimeseriesQuerySchema } from '@smartboard/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 type TimeseriesQueryDto = ReturnType<typeof TimeseriesQuerySchema.parse>;
+type DatasetMetricsQueryDto = ReturnType<typeof DatasetMetricsQuerySchema.parse>;
 
 interface TimeseriesRow {
   bucket: Date;
@@ -15,6 +16,20 @@ interface TimeseriesRow {
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async metrics(query: DatasetMetricsQueryDto, tenantId: string): Promise<string[]> {
+    const rows = await this.prisma.event.findMany({
+      where: {
+        tenantId,
+        datasetId: query.datasetId,
+      },
+      distinct: ['metric'],
+      select: { metric: true },
+      orderBy: { metric: 'asc' },
+    });
+
+    return rows.map((row) => row.metric);
+  }
 
   async timeseries(query: TimeseriesQueryDto, tenantId: string): Promise<TimeseriesRow[]> {
     const rows = await this.prisma.$queryRaw<

@@ -99,3 +99,9 @@ export async function fetchTimeseries(params: {
   );
   return res.data;
 }
+
+export async function fetchDatasetMetrics(datasetId: string): Promise<string[]> {
+  const qs = new URLSearchParams({ datasetId }).toString();
+  const res = await apiFetch<ApiOk<string[]>>(`/api/analytics/metrics?${qs}`, ctx());
+  return res.data;
+}
