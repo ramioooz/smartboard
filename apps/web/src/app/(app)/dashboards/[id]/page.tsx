@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
@@ -12,7 +12,7 @@ import { TimeseriesPanel } from '../../../../components/panels/timeseries-panel'
 import { TablePanel } from '../../../../components/panels/table-panel';
 import { TextPanel } from '../../../../components/panels/text-panel';
 import { useDashboard, useSaveLayout } from '../../../../hooks/useDashboards';
-import { useDatasets } from '../../../../hooks/useDatasets';
+import { useDatasetMetrics, useDatasets } from '../../../../hooks/useDatasets';
 import type { Panel } from '../../../../lib/dashboards';
 import type { Dataset } from '../../../../lib/datasets';
 
@@ -28,11 +28,13 @@ const PANEL_TYPES: { type: Panel['type']; label: string }[] = [
   { type: 'text', label: 'Text' },
 ];
 
+const DEFAULT_TEXT_PLACEHOLDER = 'Add your notes here…';
+
 const DEFAULT_CONFIG: Record<Panel['type'], Record<string, unknown>> = {
   kpi: { label: 'Metric', unit: '', metric: 'value', bucket: 'hour', aggregation: 'latest' },
   timeseries: { metric: 'value', bucket: 'hour' },
   table: { metric: 'value', bucket: 'hour' },
-  text: { content: 'Add your notes here…' },
+  text: { content: '' },
 };
 
 const DESKTOP_COLS = 12;
@@ -156,6 +158,38 @@ function textValue(value: unknown, fallback = '') {
   return typeof value === 'string' ? value : fallback;
 }
 
+function titleCaseMetric(metric: string) {
+  return metric
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function inferMetricUnit(metric: string) {
+  const normalized = metric.trim().toLowerCase();
+  if (!normalized) return '';
+  if (
+    normalized.includes('revenue') ||
+    normalized.includes('amount') ||
+    normalized.includes('price') ||
+    normalized.includes('cost')
+  ) {
+    return '$';
+  }
+  if (
+    normalized.includes('rate') ||
+    normalized.includes('ratio') ||
+    normalized.includes('percent') ||
+    normalized.endsWith('pct')
+  ) {
+    return '%';
+  }
+  return '';
+}
+
+const DEFAULT_KPI_LABEL = textValue(DEFAULT_CONFIG.kpi['label'], 'Metric');
+
 function PanelSettingsModal({
   panel,
   datasets,
@@ -174,8 +208,77 @@ function PanelSettingsModal({
   const [label, setLabel] = useState(textValue(panel.config['label'], panel.title));
   const [unit, setUnit] = useState(textValue(panel.config['unit']));
   const [aggregation, setAggregation] = useState(textValue(panel.config['aggregation'], 'latest'));
-  const [content, setContent] = useState(textValue(panel.config['content'], ''));
+  const [content, setContent] = useState(() => {
+    const initialContent = textValue(panel.config['content'], '');
+    return initialContent === DEFAULT_TEXT_PLACEHOLDER ? '' : initialContent;
+  });
+  const initialAutoLabel = useMemo(
+    () => (metric ? titleCaseMetric(metric) : panel.title),
+    [metric, panel.title],
+  );
+  const [labelTouched, setLabelTouched] = useState(() => {
+    const configuredLabel = textValue(panel.config['label'], panel.title).trim();
+    if (!configuredLabel) return false;
+    return (
+      configuredLabel !== panel.title &&
+      configuredLabel !== initialAutoLabel &&
+      configuredLabel !== DEFAULT_KPI_LABEL
+    );
+  });
+  const [unitTouched, setUnitTouched] = useState(textValue(panel.config['unit']).trim().length > 0);
   const readyDatasets = datasets.filter((dataset) => dataset.status === 'ready');
+  const { data: metricOptions = [] } = useDatasetMetrics(datasetId || null);
+  const previousAutoLabelRef = useRef(initialAutoLabel);
+
+  useEffect(() => {
+    if (panel.type !== 'kpi') return;
+
+    const nextAutoLabel = metric ? titleCaseMetric(metric) : panel.title;
+    previousAutoLabelRef.current = nextAutoLabel;
+
+    if (
+      !labelTouched &&
+      (label === panel.title || label === DEFAULT_KPI_LABEL || label !== nextAutoLabel)
+    ) {
+      setLabel(nextAutoLabel);
+    }
+
+    if (!unitTouched) {
+      const nextUnit = inferMetricUnit(metric);
+      if (unit !== nextUnit) {
+        setUnit(nextUnit);
+      }
+    }
+  }, [panel.type, panel.title, metric, label, labelTouched, unit, unitTouched]);
+
+  function applyMetricSelection(nextMetric: string) {
+    setMetric(nextMetric);
+    if (panel.type === 'kpi') {
+      const nextAutoLabel = nextMetric ? titleCaseMetric(nextMetric) : panel.title;
+      if (
+        !labelTouched ||
+        label === previousAutoLabelRef.current ||
+        label === panel.title ||
+        label === DEFAULT_KPI_LABEL
+      ) {
+        setLabel(nextAutoLabel);
+        setLabelTouched(false);
+      }
+      if (!unitTouched) {
+        setUnit(inferMetricUnit(nextMetric));
+      }
+      previousAutoLabelRef.current = nextAutoLabel;
+    }
+  }
+
+  useEffect(() => {
+    if (panel.type === 'text' || !datasetId || metricOptions.length === 0) return;
+    if (metricOptions.includes(metric)) return;
+    const fallbackMetric = metricOptions[0];
+    if (fallbackMetric) {
+      applyMetricSelection(fallbackMetric);
+    }
+  }, [datasetId, metric, metricOptions, panel.type]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -227,7 +330,13 @@ function PanelSettingsModal({
                 <label className="mb-1 block text-sm font-medium text-[var(--text)]">Dataset</label>
                 <select
                   value={datasetId}
-                  onChange={(e) => setDatasetId(e.target.value)}
+                  onChange={(e) => {
+                    const nextDatasetId = e.target.value;
+                    setDatasetId(nextDatasetId);
+                    if (!nextDatasetId) {
+                      applyMetricSelection('');
+                    }
+                  }}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                 >
                   <option value="">Select dataset</option>
@@ -242,11 +351,19 @@ function PanelSettingsModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[var(--text)]">Metric</label>
-                  <input
+                  <select
                     value={metric}
-                    onChange={(e) => setMetric(e.target.value)}
+                    onChange={(e) => applyMetricSelection(e.target.value)}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                  />
+                    disabled={!datasetId}
+                  >
+                    <option value="">{datasetId ? 'Select metric' : 'Select dataset first'}</option>
+                    {metricOptions.map((metricName) => (
+                      <option key={metricName} value={metricName}>
+                        {metricName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[var(--text)]">Bucket</label>
@@ -273,7 +390,10 @@ function PanelSettingsModal({
                   <label className="mb-1 block text-sm font-medium text-[var(--text)]">Label</label>
                   <input
                     value={label}
-                    onChange={(e) => setLabel(e.target.value)}
+                    onChange={(e) => {
+                      setLabelTouched(true);
+                      setLabel(e.target.value);
+                    }}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                   />
                 </div>
@@ -281,7 +401,10 @@ function PanelSettingsModal({
                   <label className="mb-1 block text-sm font-medium text-[var(--text)]">Unit</label>
                   <input
                     value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
+                    onChange={(e) => {
+                      setUnitTouched(true);
+                      setUnit(e.target.value);
+                    }}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                   />
                 </div>
@@ -309,6 +432,7 @@ function PanelSettingsModal({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                placeholder={DEFAULT_TEXT_PLACEHOLDER}
                 rows={5}
                 className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
               />
@@ -518,6 +642,7 @@ export default function DashboardBuilderPage() {
             rowHeight={80}
             margin={[12, 12]}
             draggableHandle=".drag-handle"
+            draggableCancel=".panel-action"
             onBreakpointChange={(breakpoint) => {
               currentBreakpointRef.current = breakpoint as BreakpointName;
             }}

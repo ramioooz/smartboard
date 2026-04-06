@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTenant } from '@/components/layout/tenant-bootstrap';
-import { createDataset, deleteDataset, listDatasets, uploadFile } from '@/lib/datasets';
+import { createDataset, deleteDataset, fetchDatasetMetrics, listDatasets, uploadFile } from '@/lib/datasets';
 
 export function useDatasets() {
   const { currentTenant } = useTenant();
@@ -63,5 +63,15 @@ export function useDeleteDataset() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['datasets', currentTenant.id] });
     },
+  });
+}
+
+export function useDatasetMetrics(datasetId: string | null) {
+  const { currentTenant } = useTenant();
+
+  return useQuery({
+    queryKey: ['dataset-metrics', currentTenant.id, datasetId],
+    queryFn: () => fetchDatasetMetrics(datasetId!),
+    enabled: !!currentTenant.id && !!datasetId,
   });
 }

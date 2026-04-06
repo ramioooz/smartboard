@@ -28,8 +28,9 @@ export const PanelWrapper = forwardRef<HTMLDivElement, PanelWrapperProps>(
             {onEdit && (
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                className="rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-[var(--text)] focus-visible:outline-none"
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+                className="panel-action rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-[var(--text)] focus-visible:outline-none"
                 aria-label="Edit panel"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
@@ -40,8 +41,9 @@ export const PanelWrapper = forwardRef<HTMLDivElement, PanelWrapperProps>(
             )}
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-red-500 focus-visible:outline-none"
+              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+              className="panel-action rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-red-500 focus-visible:outline-none"
               aria-label="Delete panel"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
