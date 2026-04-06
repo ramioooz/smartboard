@@ -1,12 +1,14 @@
+import { useLocale } from '../../i18n/use-t';
+
 interface TextPanelProps {
   config: Record<string, unknown>;
 }
 
-const TEXT_PANEL_PLACEHOLDER = 'Add your notes here…';
-
 export function TextPanel({ config }: TextPanelProps) {
+  const { t } = useLocale();
   const rawContent = typeof config['content'] === 'string' ? config['content'] : '';
-  const content = rawContent.trim().length > 0 ? rawContent : TEXT_PANEL_PLACEHOLDER;
+  const placeholder = t('panels.addNotes');
+  const content = rawContent.trim().length > 0 ? rawContent : placeholder;
   const isPlaceholder = rawContent.trim().length === 0;
 
   return (

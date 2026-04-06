@@ -2,10 +2,12 @@ import { Sidebar } from '../../components/layout/sidebar';
 import { TopBar } from '../../components/layout/top-bar';
 import { RealtimeProvider } from '../../components/layout/realtime-provider';
 import { TenantBootstrap } from '../../components/layout/tenant-bootstrap';
+import { LocaleSync } from '../../components/layout/locale-sync';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <TenantBootstrap>
+      <LocaleSync />
       <RealtimeProvider>
         <div className="flex h-screen overflow-hidden bg-[var(--bg)]">
           <Sidebar />

@@ -5,11 +5,13 @@ import { Card, CardContent, Badge } from '@smartboard/ui';
 import { useUser } from '../../hooks/useUser';
 import { useDatasets } from '../../hooks/useDatasets';
 import { useDashboards } from '../../hooks/useDashboards';
+import { useLocale } from '../../i18n/use-t';
 
 export default function OverviewPage() {
   const { data: user, isLoading } = useUser();
   const { data: datasetsData, isLoading: isDatasetsLoading } = useDatasets();
   const { data: dashboards, isLoading: isDashboardsLoading } = useDashboards();
+  const { t, formatNumber } = useLocale();
 
   const prefs = user?.preferences as
     | { theme?: string; scheme?: string; language?: string }
@@ -18,15 +20,17 @@ export default function OverviewPage() {
   const readyDatasetCount =
     datasetsData?.items.filter((dataset) => dataset.status === 'ready').length ?? 0;
   const dashboardCount = dashboards?.length ?? 0;
+  const themeLabel = prefs?.theme === 'dark' ? 'dark' : 'light';
+  const schemeLabel = prefs?.scheme ?? 'mint';
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold text-[var(--text)]">
-          {isLoading ? 'Loading…' : `Welcome back, ${user?.name ?? user?.email ?? 'there'}`}
+          {isLoading ? t('common.loading') : t('overview.welcomeBack', { name: user?.name ?? user?.email ?? 'there' })}
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Multi-tenant analytics and dashboard platform
+          {t('overview.subtitle')}
         </p>
       </div>
 
@@ -35,15 +39,15 @@ export default function OverviewPage() {
           <Card className="h-full transition hover:border-[var(--accent)] hover:shadow-sm">
             <CardContent className="flex h-full flex-col justify-between pt-6">
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Datasets
+                {t('overview.datasetsTitle')}
               </p>
               <p className="mt-2 text-3xl font-bold text-[var(--text)]">
-                {isDatasetsLoading ? '—' : datasetCount}
+                {isDatasetsLoading ? '—' : formatNumber(datasetCount)}
               </p>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 {isDatasetsLoading
-                  ? 'Loading datasets'
-                  : `${readyDatasetCount} ready for dashboards`}
+                  ? t('overview.loadingDatasets')
+                  : t('overview.datasetsReady', { count: formatNumber(readyDatasetCount) })}
               </p>
             </CardContent>
           </Card>
@@ -53,15 +57,20 @@ export default function OverviewPage() {
           <Card className="h-full transition hover:border-[var(--accent)] hover:shadow-sm">
             <CardContent className="flex h-full flex-col justify-between pt-6">
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Dashboards
+                {t('overview.dashboardsTitle')}
               </p>
               <p className="mt-2 text-3xl font-bold text-[var(--text)]">
-                {isDashboardsLoading ? '—' : dashboardCount}
+                {isDashboardsLoading ? '—' : formatNumber(dashboardCount)}
               </p>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 {isDashboardsLoading
-                  ? 'Loading dashboards'
-                  : `${dashboardCount === 1 ? '1 dashboard' : `${dashboardCount} dashboards`} configured`}
+                  ? t('overview.loadingDashboards')
+                  : t(
+                      dashboardCount === 1
+                        ? 'overview.dashboardsConfigured_one'
+                        : 'overview.dashboardsConfigured_other',
+                      { count: formatNumber(dashboardCount) },
+                    )}
               </p>
             </CardContent>
           </Card>
@@ -71,11 +80,11 @@ export default function OverviewPage() {
           <Card className="h-full transition hover:border-[var(--accent)] hover:shadow-sm">
             <CardContent className="flex h-full flex-col justify-between pt-6">
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Active theme
+                {t('overview.activeThemeTitle')}
               </p>
               <div className="mt-2 flex items-center gap-2">
-                <Badge variant="success">{prefs?.theme ?? 'light'}</Badge>
-                <Badge>{prefs?.scheme ?? 'mint'}</Badge>
+                <Badge variant="success">{themeLabel}</Badge>
+                <Badge>{schemeLabel}</Badge>
               </div>
             </CardContent>
           </Card>
