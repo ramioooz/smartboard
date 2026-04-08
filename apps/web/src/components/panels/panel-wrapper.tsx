@@ -1,4 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import { useLocale } from '../../i18n/use-t';
 
 interface PanelWrapperProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -14,6 +15,8 @@ interface PanelWrapperProps extends HTMLAttributes<HTMLDivElement> {
  */
 export const PanelWrapper = forwardRef<HTMLDivElement, PanelWrapperProps>(
   ({ title, onDelete, onEdit, children, style, className, ...rest }, ref) => {
+    const { t } = useLocale();
+
     return (
       <div
         ref={ref}
@@ -31,7 +34,7 @@ export const PanelWrapper = forwardRef<HTMLDivElement, PanelWrapperProps>(
                 onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
                 className="panel-action rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-[var(--text)] focus-visible:outline-none"
-                aria-label="Edit panel"
+                aria-label={t('panels.editPanel')}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9" />
@@ -44,7 +47,7 @@ export const PanelWrapper = forwardRef<HTMLDivElement, PanelWrapperProps>(
               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
               className="panel-action rounded p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface2)] hover:text-red-500 focus-visible:outline-none"
-              aria-label="Delete panel"
+              aria-label={t('panels.deletePanel')}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />

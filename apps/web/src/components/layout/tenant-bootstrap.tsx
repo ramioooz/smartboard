@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, CardContent, CardHeader } from '@smartboard/ui';
 import type { PagedResult } from '@smartboard/shared';
 import { useUser } from '../../hooks/useUser';
+import { useLocale } from '../../i18n/use-t';
 import { clearTenantId, getTenantId, setTenantId } from '../../lib/tenant';
 import { createTenant, listTenants } from '../../lib/tenants';
 import type { Tenant } from '../../lib/tenants';
@@ -59,6 +60,7 @@ function OnboardingState({
   isPending: boolean;
   error?: string;
 }) {
+  const { t } = useLocale();
   const [name, setName] = useState('My Workspace');
 
   async function handleSubmit(e: React.FormEvent) {
@@ -72,27 +74,27 @@ function OnboardingState({
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <h1 className="text-lg font-semibold text-[var(--text)]">Create your first workspace</h1>
+          <h1 className="text-lg font-semibold text-[var(--text)]">{t('tenant.createFirstWorkspace')}</h1>
           <p className="text-sm text-[var(--muted)]">
-            Smartboard needs a tenant before datasets and dashboards can load.
+            {t('tenant.createFirstWorkspaceSubtitle')}
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text)]">Workspace name</label>
+              <label className="block text-sm font-medium text-[var(--text)]">{t('tenant.workspaceName')}</label>
               <input
                 autoFocus
                 value={name}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 className="mt-1 w-full rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                placeholder="My Workspace"
+                placeholder={t('tenant.workspaceName')}
               />
             </div>
             {error ? <p className="text-sm text-red-500">{error}</p> : null}
             <div className="flex justify-end">
               <Button type="submit" disabled={!name.trim() || isPending}>
-                {isPending ? 'Creating…' : 'Create Workspace'}
+                {isPending ? t('common.creating') : t('tenant.createWorkspace')}
               </Button>
             </div>
           </form>
@@ -109,13 +111,14 @@ function SelectionState({
   tenants: Tenant[];
   onSelect: (tenantId: string) => void;
 }) {
+  const { t } = useLocale();
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <h1 className="text-lg font-semibold text-[var(--text)]">Choose a workspace</h1>
+          <h1 className="text-lg font-semibold text-[var(--text)]">{t('tenant.chooseWorkspace')}</h1>
           <p className="text-sm text-[var(--muted)]">
-            Select the workspace you want to use for dashboards, datasets, and realtime updates.
+            {t('tenant.chooseWorkspaceSubtitle')}
           </p>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -145,6 +148,7 @@ export function useTenant() {
 }
 
 export function TenantBootstrap({ children }: { children: React.ReactNode }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const { data: user, isLoading: isUserLoading, isError: isUserError } = useUser();
   const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>('loading');
@@ -235,19 +239,19 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   }, [user, tenantsQuery.isLoading, tenants.length, tenants, validStoredTenant, qc]);
 
   if (isUserLoading) {
-    return <LoadingState label="Loading account…" />;
+    return <LoadingState label={t('common.loadingAccount')} />;
   }
 
   if (isUserError) {
-    return <LoadingState label="Loading account failed." />;
+    return <LoadingState label={t('common.loadingAccountFailed')} />;
   }
 
   if (tenantsQuery.isLoading || (selectionState === 'loading' && !!user)) {
-    return <LoadingState label="Loading workspace…" />;
+    return <LoadingState label={t('common.loadingWorkspace')} />;
   }
 
   if (tenantsQuery.error) {
-    return <LoadingState label="Loading workspace failed." />;
+    return <LoadingState label={t('common.loadingWorkspaceFailed')} />;
   }
 
   if (tenants.length === 0) {

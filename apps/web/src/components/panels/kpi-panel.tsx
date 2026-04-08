@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTimeseries } from '@/lib/datasets';
+import { useLocale } from '../../i18n/use-t';
 
 interface KpiPanelProps {
   config: Record<string, unknown>;
@@ -8,7 +9,8 @@ interface KpiPanelProps {
 }
 
 export function KpiPanel({ config, onSelectDataset }: KpiPanelProps) {
-  const label = typeof config['label'] === 'string' ? config['label'] : 'Metric';
+  const { t, formatNumber } = useLocale();
+  const label = typeof config['label'] === 'string' ? config['label'] : t('panels.metric');
   const unit = typeof config['unit'] === 'string' ? config['unit'] : '';
   const datasetId = typeof config['datasetId'] === 'string' ? config['datasetId'] : '';
   const metric = typeof config['metric'] === 'string' ? config['metric'] : 'value';
@@ -37,18 +39,18 @@ export function KpiPanel({ config, onSelectDataset }: KpiPanelProps) {
 
     switch (aggregation) {
       case 'avg':
-        return String(Math.round(rows.reduce((sum, row) => sum + row.avg, 0) / rows.length));
+        return formatNumber(Math.round(rows.reduce((sum, row) => sum + row.avg, 0) / rows.length));
       case 'max':
-        return String(Math.round(Math.max(...rows.map((row) => row.max))));
+        return formatNumber(Math.round(Math.max(...rows.map((row) => row.max))));
       case 'min':
-        return String(Math.round(Math.min(...rows.map((row) => row.min))));
+        return formatNumber(Math.round(Math.min(...rows.map((row) => row.min))));
       case 'count':
-        return String(rows.reduce((sum, row) => sum + row.count, 0));
+        return formatNumber(rows.reduce((sum, row) => sum + row.count, 0));
       case 'latest':
       default:
-        return String(Math.round(rows[rows.length - 1]?.avg ?? 0));
+        return formatNumber(Math.round(rows[rows.length - 1]?.avg ?? 0));
     }
-  }, [aggregation, datasetId, rows]);
+  }, [aggregation, datasetId, formatNumber, rows]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-1">
@@ -63,7 +65,7 @@ export function KpiPanel({ config, onSelectDataset }: KpiPanelProps) {
           onClick={onSelectDataset}
           className="text-xs text-[var(--muted)] underline-offset-4 hover:text-[var(--primary)] hover:underline"
         >
-          Select a dataset
+          {t('panels.selectDataset')}
         </button>
       )}
     </div>

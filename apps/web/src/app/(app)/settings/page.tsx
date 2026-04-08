@@ -5,16 +5,13 @@ import { Card, CardHeader, CardContent, Button } from '@smartboard/ui';
 import { ThemePicker } from '../../../components/settings/theme-picker';
 import { useUser, useUpdatePreferences } from '../../../hooks/useUser';
 import type { UserPreferences } from '../../../lib/auth';
-
-const LANGUAGES = [
-  { value: 'en', label: 'English' },
-  { value: 'fr', label: 'Français' },
-  { value: 'de', label: 'Deutsch' },
-];
+import { LANGUAGE_OPTIONS, normalizeLocale } from '../../../i18n/config';
+import { useLocale } from '../../../i18n/use-t';
 
 export default function SettingsPage() {
   const { data: user } = useUser();
   const updatePrefs = useUpdatePreferences();
+  const { t, setLocale, locale } = useLocale();
 
   const stored = user?.preferences as Partial<UserPreferences> | undefined;
 
@@ -23,7 +20,7 @@ export default function SettingsPage() {
     scheme: UserPreferences['scheme'];
   }>({ theme: stored?.theme ?? 'light', scheme: stored?.scheme ?? 'mint' });
 
-  const [language, setLanguage] = useState<string>(stored?.language ?? 'en');
+  const [language, setLanguage] = useState<string>(stored?.language ?? locale);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Sync local state when user loads
@@ -33,9 +30,9 @@ export default function SettingsPage() {
         theme: stored.theme ?? 'light',
         scheme: stored.scheme ?? 'mint',
       });
-      setLanguage(stored.language ?? 'en');
+      setLanguage(stored.language ?? locale);
     }
-  }, [stored?.theme, stored?.scheme, stored?.language]);
+  }, [locale, stored?.theme, stored?.scheme, stored?.language]);
 
   function handleThemeChange(value: { theme: UserPreferences['theme']; scheme: UserPreferences['scheme'] }) {
     setThemeScheme(value);
@@ -49,6 +46,7 @@ export default function SettingsPage() {
         scheme: themeScheme.scheme,
         language,
       });
+      setLocale(normalizeLocale(language));
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
     } catch {
@@ -60,15 +58,15 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text)]">Settings</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">Manage your appearance and account preferences</p>
+        <h1 className="text-2xl font-bold text-[var(--text)]">{t('settings.title')}</h1>
+        <p className="mt-1 text-sm text-[var(--muted)]">{t('settings.subtitle')}</p>
       </div>
 
       {/* Appearance */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">Appearance</h2>
-          <p className="text-sm text-[var(--muted)]">Choose a theme and color scheme</p>
+          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.appearanceTitle')}</h2>
+          <p className="text-sm text-[var(--muted)]">{t('settings.appearanceSubtitle')}</p>
         </CardHeader>
         <CardContent>
           <ThemePicker value={themeScheme} onChange={handleThemeChange} />
@@ -78,8 +76,8 @@ export default function SettingsPage() {
       {/* Language */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">Language</h2>
-          <p className="text-sm text-[var(--muted)]">Select your preferred language</p>
+          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.languageTitle')}</h2>
+          <p className="text-sm text-[var(--muted)]">{t('settings.languageSubtitle')}</p>
         </CardHeader>
         <CardContent>
           <select
@@ -87,7 +85,7 @@ export default function SettingsPage() {
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLanguage(e.target.value)}
             className="w-full rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
           >
-            {LANGUAGES.map((lang) => (
+            {LANGUAGE_OPTIONS.map((lang) => (
               <option key={lang.value} value={lang.value}>
                 {lang.label}
               </option>
@@ -99,17 +97,17 @@ export default function SettingsPage() {
       {/* Account */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">Account</h2>
-          <p className="text-sm text-[var(--muted)]">Your account details</p>
+          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.accountTitle')}</h2>
+          <p className="text-sm text-[var(--muted)]">{t('settings.accountSubtitle')}</p>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-xs font-medium text-[var(--muted)]">Name</p>
+              <p className="text-xs font-medium text-[var(--muted)]">{t('settings.name')}</p>
               <p className="mt-0.5 text-sm text-[var(--text)]">{user?.name ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-[var(--muted)]">Email</p>
+              <p className="text-xs font-medium text-[var(--muted)]">{t('settings.email')}</p>
               <p className="mt-0.5 text-sm text-[var(--text)]">{user?.email ?? '—'}</p>
             </div>
           </div>
@@ -119,14 +117,14 @@ export default function SettingsPage() {
       {/* Save */}
       <div className="flex items-center gap-4">
         <Button onClick={() => void handleSave()} disabled={saveStatus === 'saving'}>
-          {saveStatus === 'saving' ? 'Saving…' : 'Save preferences'}
+          {saveStatus === 'saving' ? t('common.saving') : t('settings.savePreferences')}
         </Button>
 
         {saveStatus === 'saved' && (
-          <p className="text-sm text-[var(--primary)]">Preferences saved!</p>
+          <p className="text-sm text-[var(--primary)]">{t('settings.preferencesSaved')}</p>
         )}
         {saveStatus === 'error' && (
-          <p className="text-sm text-red-500">Failed to save. Please try again.</p>
+          <p className="text-sm text-red-500">{t('settings.preferencesSaveFailed')}</p>
         )}
       </div>
     </div>

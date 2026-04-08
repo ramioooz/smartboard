@@ -2,11 +2,12 @@
 
 import { clsx } from 'clsx';
 import type { UserPreferences } from '../../lib/auth';
+import { useLocale } from '../../i18n/use-t';
 
 interface ThemeOption {
   theme: UserPreferences['theme'];
   scheme: UserPreferences['scheme'];
-  label: string;
+  labelKey: string;
   // Preview colors (hardcoded to show what each theme looks like)
   preview: {
     bg: string;
@@ -20,25 +21,25 @@ const THEMES: ThemeOption[] = [
   {
     theme: 'light',
     scheme: 'mint',
-    label: 'Light · Mint',
+    labelKey: 'theme.lightMint',
     preview: { bg: '#f6f9f7', surface: '#ffffff', primary: '#16a34a', text: '#0f172a' },
   },
   {
     theme: 'light',
     scheme: 'warm',
-    label: 'Light · Warm',
+    labelKey: 'theme.lightWarm',
     preview: { bg: '#faf8f4', surface: '#ffffff', primary: '#f59e0b', text: '#1f2937' },
   },
   {
     theme: 'dark',
     scheme: 'neon',
-    label: 'Dark · Neon',
+    labelKey: 'theme.darkNeon',
     preview: { bg: '#0b0b0c', surface: '#111113', primary: '#a3ff12', text: '#f4f4f5' },
   },
   {
     theme: 'dark',
     scheme: 'ember',
-    label: 'Dark · Ember',
+    labelKey: 'theme.darkEmber',
     preview: { bg: '#0a0a0a', surface: '#121212', primary: '#f97316', text: '#f9fafb' },
   },
 ];
@@ -49,6 +50,8 @@ interface ThemePickerProps {
 }
 
 export function ThemePicker({ value, onChange }: ThemePickerProps) {
+  const { t } = useLocale();
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {THEMES.map((opt) => {
@@ -93,7 +96,7 @@ export function ThemePicker({ value, onChange }: ThemePickerProps) {
 
             {/* Label */}
             <div className="bg-[var(--surface2)] px-2 py-1.5 text-center">
-              <p className="text-xs font-medium text-[var(--text)]">{opt.label}</p>
+              <p className="text-xs font-medium text-[var(--text)]">{t(opt.labelKey)}</p>
             </div>
 
             {/* Selected checkmark */}

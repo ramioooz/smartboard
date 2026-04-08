@@ -5,10 +5,12 @@ import { startLogout } from '../../lib/auth';
 import { useUser } from '../../hooks/useUser';
 import { usePersistedAppearance } from '../../hooks/usePersistedAppearance';
 import { useTenant } from './tenant-bootstrap';
+import { useLocale } from '../../i18n/use-t';
 
 export function TopBar() {
   const { data: user } = useUser();
   const { currentTenant, tenants, selectTenant } = useTenant();
+  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -51,7 +53,7 @@ export function TopBar() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-[var(--text)]">{currentTenant.name}</p>
             <p className="truncate text-xs text-[var(--muted)]">
-              {hasMultipleTenants ? 'Switch workspace' : currentTenant.slug}
+              {hasMultipleTenants ? t('topbar.switchWorkspace') : currentTenant.slug}
             </p>
           </div>
           {hasMultipleTenants ? (
@@ -80,7 +82,7 @@ export function TopBar() {
                     <p className="truncate text-xs text-[var(--muted)]">{tenant.slug}</p>
                   </div>
                   {isActive ? (
-                    <span className="text-xs font-medium text-[var(--primary)]">Current</span>
+                    <span className="text-xs font-medium text-[var(--primary)]">{t('common.current')}</span>
                   ) : null}
                 </button>
               );
@@ -97,7 +99,7 @@ export function TopBar() {
               onClick={() => startLogout(`${window.location.origin}/signed-out`)}
               className="rounded-[calc(var(--radius)-6px)] border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
             >
-              Sign out
+              {t('common.signOut')}
             </button>
             <div className="text-right">
               <p className="text-sm font-medium text-[var(--text)]">{user.name ?? user.email}</p>

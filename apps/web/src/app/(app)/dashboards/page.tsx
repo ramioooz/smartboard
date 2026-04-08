@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, Button, Badge } from '@smartboard/ui';
 import { useDashboards, useCreateDashboard } from '../../../hooks/useDashboards';
 import type { Dashboard } from '../../../lib/dashboards';
+import { useLocale } from '../../../i18n/use-t';
 
 function EmptyState({ onNew }: { onNew: () => void }) {
+  const { t } = useLocale();
+
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-16">
@@ -18,19 +21,22 @@ function EmptyState({ onNew }: { onNew: () => void }) {
           </svg>
         </div>
         <div className="text-center">
-          <p className="font-medium text-[var(--text)]">No dashboards yet</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">Create your first dashboard to start building</p>
+          <p className="font-medium text-[var(--text)]">{t('dashboards.noDashboards')}</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">{t('dashboards.noDashboardsSubtitle')}</p>
         </div>
-        <Button onClick={onNew}>New Dashboard</Button>
+        <Button onClick={onNew}>{t('dashboards.newDashboard')}</Button>
       </CardContent>
     </Card>
   );
 }
 
 function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: () => void }) {
+  const { t, formatDate, formatNumber } = useLocale();
   const panelCount = Array.isArray(dashboard.panels) ? dashboard.panels.length : 0;
-  const updated = new Date(dashboard.updatedAt).toLocaleDateString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric',
+  const updated = formatDate(dashboard.updatedAt, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
 
   return (
@@ -48,14 +54,19 @@ function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: 
             <p className="mt-1 truncate text-sm text-[var(--muted)]">{dashboard.description}</p>
           )}
         </div>
-        <Badge variant="default">{panelCount} {panelCount === 1 ? 'panel' : 'panels'}</Badge>
+        <Badge variant="default">
+          {t(panelCount === 1 ? 'dashboards.panelCount_one' : 'dashboards.panelCount_other', {
+            count: formatNumber(panelCount),
+          })}
+        </Badge>
       </div>
-      <p className="mt-3 text-xs text-[var(--muted)]">Updated {updated}</p>
+      <p className="mt-3 text-xs text-[var(--muted)]">{t('dashboards.updated', { date: updated })}</p>
     </button>
   );
 }
 
 function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const { t } = useLocale();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const create = useCreateDashboard();
@@ -70,32 +81,32 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-[var(--radius)] bg-[var(--surface)] p-6 shadow-[var(--shadow)]">
-        <h2 className="text-lg font-semibold text-[var(--text)]">New Dashboard</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">{t('dashboards.createTitle')}</h2>
         <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--text)]">Name</label>
+            <label className="block text-sm font-medium text-[var(--text)]">{t('dashboards.createName')}</label>
             <input
               autoFocus
               value={name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              placeholder="My Dashboard"
+              placeholder={t('dashboards.createNamePlaceholder')}
               className="mt-1 w-full rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--text)]">Description <span className="text-[var(--muted)]">(optional)</span></label>
+            <label className="block text-sm font-medium text-[var(--text)]">{t('dashboards.createDescription')} <span className="text-[var(--muted)]">{t('dashboards.optional')}</span></label>
             <textarea
               value={description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
-              placeholder="What is this dashboard for?"
+              placeholder={t('dashboards.createDescriptionPlaceholder')}
               rows={2}
               className="mt-1 w-full resize-none rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
             />
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={!name.trim() || create.isPending}>
-              {create.isPending ? 'Creating…' : 'Create'}
+              {create.isPending ? t('common.creating') : t('dashboards.createButton')}
             </Button>
           </div>
         </form>
@@ -106,6 +117,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
 
 export default function DashboardsPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const { data: dashboards, isLoading, error } = useDashboards();
   const [showCreate, setShowCreate] = useState(false);
 
@@ -119,15 +131,15 @@ export default function DashboardsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text)]">Dashboards</h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">Build and share your analytics dashboards</p>
+          <h1 className="text-2xl font-bold text-[var(--text)]">{t('dashboards.title')}</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">{t('dashboards.subtitle')}</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <svg className="mr-2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          New Dashboard
+          {t('dashboards.newDashboard')}
         </Button>
       </div>
 
@@ -143,7 +155,7 @@ export default function DashboardsPage() {
       {error && (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-sm text-red-500">Failed to load dashboards. Is the gateway running?</p>
+            <p className="text-sm text-red-500">{t('dashboards.createFailed')}</p>
           </CardContent>
         </Card>
       )}

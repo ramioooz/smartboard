@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
+import { useLocale } from '../../i18n/use-t';
 
 const NAV_ITEMS = [
   {
     href: '/',
-    label: 'Overview',
+    labelKey: 'sidebar.overview',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" />
@@ -19,7 +20,7 @@ const NAV_ITEMS = [
   },
   {
     href: '/datasets',
-    label: 'Datasets',
+    labelKey: 'sidebar.datasets',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <ellipse cx="12" cy="5" rx="9" ry="3" />
@@ -30,7 +31,7 @@ const NAV_ITEMS = [
   },
   {
     href: '/dashboards',
-    label: 'Dashboards',
+    labelKey: 'sidebar.dashboards',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" />
@@ -41,7 +42,7 @@ const NAV_ITEMS = [
   },
   {
     href: '/settings',
-    label: 'Settings',
+    labelKey: 'sidebar.settings',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -54,6 +55,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <aside className="flex w-56 flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
@@ -82,9 +84,9 @@ export function Sidebar() {
                   ? 'bg-[var(--primary)] text-[var(--primaryFg)]'
                   : 'text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]',
               )}
-            >
+              >
               <span className="flex-shrink-0">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </Link>
           );
         })}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTimeseries } from '@/lib/datasets';
+import { useLocale } from '../../i18n/use-t';
 
 interface TimeseriesPanelProps {
   config: Record<string, unknown>;
@@ -10,6 +11,7 @@ interface TimeseriesPanelProps {
 }
 
 export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProps) {
+  const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
 
@@ -63,11 +65,11 @@ export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProp
         grid: { top: 8, right: 8, bottom: 24, left: 40 },
         graphic: chartData.length === 0
           ? {
-              type: 'text',
-              left: 'center',
-              top: 'middle',
-              style: {
-                text: datasetId ? 'No timeseries data' : 'Select a dataset',
+                type: 'text',
+                left: 'center',
+                top: 'middle',
+                style: {
+                text: datasetId ? t('panels.noTimeseries') : t('panels.selectDataset'),
                 fill: muted,
                 fontSize: 12,
               },
@@ -130,7 +132,7 @@ export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProp
         chartRef.current = null;
       }
     };
-  }, [chartData, datasetId, metric]); // chart is recreated when structure changes
+  }, [chartData, datasetId, metric, t]); // chart is recreated when structure changes
 
   // Update chart data without recreating it
   useEffect(() => {
@@ -144,7 +146,7 @@ export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProp
             left: 'center',
             top: 'middle',
             style: {
-              text: datasetId ? 'No timeseries data' : 'Select a dataset',
+              text: datasetId ? t('panels.noTimeseries') : t('panels.selectDataset'),
               fill: muted,
               fontSize: 12,
             },
@@ -153,7 +155,7 @@ export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProp
       xAxis: { data: chartData.map((d) => { const dt = new Date(d.bucket); return `${dt.getHours()}:00`; }) },
       series: [{ data: chartData.map((d) => d.value) }],
     });
-  }, [chartData]);
+  }, [chartData, datasetId, t]);
 
   if (!datasetId) {
     return (
@@ -163,7 +165,7 @@ export function TimeseriesPanel({ config, onSelectDataset }: TimeseriesPanelProp
           onClick={onSelectDataset}
           className="text-sm font-medium text-[var(--muted)] underline-offset-4 hover:text-[var(--primary)] hover:underline"
         >
-          Select a dataset
+          {t('panels.selectDataset')}
         </button>
       </div>
     );

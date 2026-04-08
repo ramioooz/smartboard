@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import type { UserPreferences } from '../lib/auth';
+import { LocaleProvider } from '../i18n/provider';
 
 export function Providers({
   children,
@@ -33,14 +34,16 @@ export function Providers({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="data-theme"
-        defaultTheme={initialTheme}
-        enableSystem={false}
-        storageKey="sb-theme"
-      >
-        {children}
-      </ThemeProvider>
+      <LocaleProvider>
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme={initialTheme}
+          enableSystem={false}
+          storageKey="sb-theme"
+        >
+          {children}
+        </ThemeProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }

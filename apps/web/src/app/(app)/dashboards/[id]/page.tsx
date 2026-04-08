@@ -13,6 +13,7 @@ import { TablePanel } from '../../../../components/panels/table-panel';
 import { TextPanel } from '../../../../components/panels/text-panel';
 import { useDashboard, useSaveLayout } from '../../../../hooks/useDashboards';
 import { useDatasetMetrics, useDatasets } from '../../../../hooks/useDatasets';
+import { useLocale } from '../../../../i18n/use-t';
 import type { Panel } from '../../../../lib/dashboards';
 import type { Dataset } from '../../../../lib/datasets';
 
@@ -21,14 +22,12 @@ import 'react-resizable/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const PANEL_TYPES: { type: Panel['type']; label: string }[] = [
-  { type: 'kpi', label: 'KPI Card' },
-  { type: 'timeseries', label: 'Time Series' },
-  { type: 'table', label: 'Table' },
-  { type: 'text', label: 'Text' },
+const PANEL_TYPES: { type: Panel['type']; labelKey: string }[] = [
+  { type: 'kpi', labelKey: 'dashboards.panelTypes.kpi' },
+  { type: 'timeseries', labelKey: 'dashboards.panelTypes.timeseries' },
+  { type: 'table', labelKey: 'dashboards.panelTypes.table' },
+  { type: 'text', labelKey: 'dashboards.panelTypes.text' },
 ];
-
-const DEFAULT_TEXT_PLACEHOLDER = 'Add your notes here…';
 
 const DEFAULT_CONFIG: Record<Panel['type'], Record<string, unknown>> = {
   kpi: { label: 'Metric', unit: '', metric: 'value', bucket: 'hour', aggregation: 'latest' },
@@ -201,6 +200,7 @@ function PanelSettingsModal({
   onClose: () => void;
   onSave: (panel: Panel) => void;
 }) {
+  const { t } = useLocale();
   const [title, setTitle] = useState(panel.title);
   const [datasetId, setDatasetId] = useState(panel.datasetId ?? textValue(panel.config['datasetId']));
   const [metric, setMetric] = useState(textValue(panel.config['metric'], 'value'));
@@ -210,7 +210,7 @@ function PanelSettingsModal({
   const [aggregation, setAggregation] = useState(textValue(panel.config['aggregation'], 'latest'));
   const [content, setContent] = useState(() => {
     const initialContent = textValue(panel.config['content'], '');
-    return initialContent === DEFAULT_TEXT_PLACEHOLDER ? '' : initialContent;
+    return initialContent === t('panels.addNotes') ? '' : initialContent;
   });
   const initialAutoLabel = useMemo(
     () => (metric ? titleCaseMetric(metric) : panel.title),
@@ -313,10 +313,10 @@ function PanelSettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">Edit Panel</h2>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">{t('dashboards.editPanel')}</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--text)]">Title</label>
+            <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelTitle')}</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -327,7 +327,7 @@ function PanelSettingsModal({
           {panel.type !== 'text' && (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--text)]">Dataset</label>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelDataset')}</label>
                 <select
                   value={datasetId}
                   onChange={(e) => {
@@ -339,7 +339,7 @@ function PanelSettingsModal({
                   }}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                 >
-                  <option value="">Select dataset</option>
+                  <option value="">{t('dashboards.panelSelectDataset')}</option>
                   {readyDatasets.map((dataset) => (
                     <option key={dataset.id} value={dataset.id}>
                       {dataset.name}
@@ -350,14 +350,14 @@ function PanelSettingsModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Metric</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelMetric')}</label>
                   <select
                     value={metric}
                     onChange={(e) => applyMetricSelection(e.target.value)}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                     disabled={!datasetId}
                   >
-                    <option value="">{datasetId ? 'Select metric' : 'Select dataset first'}</option>
+                    <option value="">{datasetId ? t('dashboards.panelSelectMetric') : t('dashboards.panelSelectDatasetFirst')}</option>
                     {metricOptions.map((metricName) => (
                       <option key={metricName} value={metricName}>
                         {metricName}
@@ -366,7 +366,7 @@ function PanelSettingsModal({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Bucket</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelBucket')}</label>
                   <select
                     value={bucket}
                     onChange={(e) => setBucket(e.target.value)}
@@ -387,7 +387,7 @@ function PanelSettingsModal({
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Label</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelLabel')}</label>
                   <input
                     value={label}
                     onChange={(e) => {
@@ -398,7 +398,7 @@ function PanelSettingsModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">Unit</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelUnit')}</label>
                   <input
                     value={unit}
                     onChange={(e) => {
@@ -410,17 +410,17 @@ function PanelSettingsModal({
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--text)]">Aggregation</label>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelAggregation')}</label>
                 <select
                   value={aggregation}
                   onChange={(e) => setAggregation(e.target.value)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                 >
-                  <option value="latest">Latest Average</option>
-                  <option value="avg">Average</option>
-                  <option value="max">Max</option>
-                  <option value="min">Min</option>
-                  <option value="count">Total Count</option>
+                  <option value="latest">{t('dashboards.aggregation.latest')}</option>
+                  <option value="avg">{t('dashboards.aggregation.avg')}</option>
+                  <option value="max">{t('dashboards.aggregation.max')}</option>
+                  <option value="min">{t('dashboards.aggregation.min')}</option>
+                  <option value="count">{t('dashboards.aggregation.count')}</option>
                 </select>
               </div>
             </>
@@ -428,11 +428,11 @@ function PanelSettingsModal({
 
           {panel.type === 'text' && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--text)]">Content</label>
+              <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelContent')}</label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder={DEFAULT_TEXT_PLACEHOLDER}
+                placeholder={t('panels.addNotes')}
                 rows={5}
                 className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
               />
@@ -441,10 +441,10 @@ function PanelSettingsModal({
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit">
-              Apply
+              {t('common.apply')}
             </Button>
           </div>
         </form>
@@ -454,6 +454,7 @@ function PanelSettingsModal({
 }
 
 export default function DashboardBuilderPage() {
+  const { t } = useLocale();
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params.id;
@@ -512,7 +513,7 @@ export default function DashboardBuilderPage() {
     const newPanel: Panel = {
       id: uuidv4(),
       type,
-      title: PANEL_TYPES.find((t) => t.type === type)?.label ?? type,
+      title: t(PANEL_TYPES.find((item) => item.type === type)?.labelKey ?? 'common.untitled'),
       config: DEFAULT_CONFIG[type],
       layout,
     };
@@ -553,7 +554,7 @@ export default function DashboardBuilderPage() {
   if (isLoading) {
     return (
       <div className="-m-6 flex h-full items-center justify-center">
-        <p className="text-sm text-[var(--muted)]">Loading dashboard…</p>
+        <p className="text-sm text-[var(--muted)]">{t('dashboards.loadingDashboard')}</p>
       </div>
     );
   }
@@ -561,8 +562,8 @@ export default function DashboardBuilderPage() {
   if (error || !dashboard) {
     return (
       <div className="-m-6 flex h-full flex-col items-center justify-center gap-4">
-        <p className="text-sm text-red-500">Dashboard not found or unavailable.</p>
-        <Button variant="ghost" onClick={() => router.push('/dashboards')}>← Back to Dashboards</Button>
+        <p className="text-sm text-red-500">{t('dashboards.dashboardMissing')}</p>
+        <Button variant="ghost" onClick={() => router.push('/dashboards')}>← {t('dashboards.backToDashboards')}</Button>
       </div>
     );
   }
@@ -579,19 +580,19 @@ export default function DashboardBuilderPage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Dashboards
+          {t('dashboards.builderBack')}
         </button>
 
         <span className="text-[var(--border)]">/</span>
         <h1 className="font-semibold text-[var(--text)]">{dashboard.name}</h1>
 
-        {dirty && <Badge variant="warning">Unsaved changes</Badge>}
+        {dirty && <Badge variant="warning">{t('dashboards.unsavedChanges')}</Badge>}
 
         <div className="ml-auto flex items-center gap-2">
           {/* Add Panel dropdown */}
           <div className="relative">
             <Button variant="outline" size="sm" onClick={() => setShowAddMenu((v) => !v)}>
-              Add Panel
+              {t('dashboards.addPanel')}
               <svg className="ml-1.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -607,7 +608,7 @@ export default function DashboardBuilderPage() {
                       onClick={() => addPanel(pt.type)}
                       className="w-full px-4 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--surface2)] transition-colors"
                     >
-                      {pt.label}
+                      {t(pt.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -617,11 +618,11 @@ export default function DashboardBuilderPage() {
 
           {/* Save button */}
           <Button size="sm" onClick={() => void handleSave()} disabled={!dirty || saveStatus === 'saving'}>
-            {saveStatus === 'saving' ? 'Saving…' : 'Save'}
+            {saveStatus === 'saving' ? t('common.saving') : t('common.save')}
           </Button>
 
-          {saveStatus === 'saved' && <span className="text-xs text-[var(--primary)]">Saved!</span>}
-          {saveStatus === 'error' && <span className="text-xs text-red-500">Error saving</span>}
+          {saveStatus === 'saved' && <span className="text-xs text-[var(--primary)]">{t('common.saved')}</span>}
+          {saveStatus === 'error' && <span className="text-xs text-red-500">{t('dashboards.saveError')}</span>}
         </div>
       </div>
 
@@ -629,8 +630,8 @@ export default function DashboardBuilderPage() {
       <div className="flex-1 overflow-auto bg-[var(--bg)] p-2">
         {activePanels.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <p className="font-medium text-[var(--muted)]">Empty dashboard</p>
-            <p className="text-sm text-[var(--muted)]">Click "Add Panel" to start building</p>
+            <p className="font-medium text-[var(--muted)]">{t('dashboards.emptyTitle')}</p>
+            <p className="text-sm text-[var(--muted)]">{t('dashboards.emptySubtitle')}</p>
           </div>
         ) : (
           <ResponsiveGridLayout
