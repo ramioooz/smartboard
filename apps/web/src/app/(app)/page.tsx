@@ -20,8 +20,16 @@ export default function OverviewPage() {
   const readyDatasetCount =
     datasetsData?.items.filter((dataset) => dataset.status === 'ready').length ?? 0;
   const dashboardCount = dashboards?.length ?? 0;
-  const themeLabel = prefs?.theme === 'dark' ? 'dark' : 'light';
-  const schemeLabel = prefs?.scheme ?? 'mint';
+  const themeLabel =
+    prefs?.theme === 'dark' ? t('overview.themeDark') : t('overview.themeLight');
+  const schemeLabel =
+    prefs?.scheme === 'warm'
+      ? t('overview.schemeWarm')
+      : prefs?.scheme === 'neon'
+        ? t('overview.schemeNeon')
+        : prefs?.scheme === 'ember'
+          ? t('overview.schemeEmber')
+          : t('overview.schemeMint');
 
   return (
     <div className="flex flex-col gap-6">
