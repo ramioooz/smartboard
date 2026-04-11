@@ -374,7 +374,7 @@ function PanelSettingsModal({
                   >
                     {['hour', 'day', 'week', 'month'].map((value) => (
                       <option key={value} value={value}>
-                        {value}
+                        {t(`dashboards.bucket.${value}`)}
                       </option>
                     ))}
                   </select>
