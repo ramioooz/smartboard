@@ -13,7 +13,7 @@ export type Pagination = z.infer<typeof PaginationSchema>;
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export const LanguageSchema = z.enum(['en', 'fr']);
+export const LanguageSchema = z.enum(['en', 'fr', 'ar']);
 export type Language = z.infer<typeof LanguageSchema>;
 
 export const UserPreferencesSchema = z.object({

@@ -12,15 +12,17 @@ declare const expect: {
 };
 
 describe('UserPreferencesSchema', () => {
-  it('accepts supported language values', () => {
-    expect(() =>
-      UserPreferencesSchema.parse({
-        theme: 'light',
-        scheme: 'mint',
-        language: 'fr',
-      }),
-    ).not.toThrow();
-  });
+  for (const language of ['en', 'fr', 'ar']) {
+    it(`accepts supported language value ${language}`, () => {
+      expect(() =>
+        UserPreferencesSchema.parse({
+          theme: 'light',
+          scheme: 'mint',
+          language,
+        }),
+      ).not.toThrow();
+    });
+  }
 
   it('rejects unsupported language values', () => {
     expect(() =>
