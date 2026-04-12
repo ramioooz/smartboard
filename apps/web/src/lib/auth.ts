@@ -1,6 +1,7 @@
 import { apiFetch } from './api';
 import type { ApiOk } from '@smartboard/shared';
 import { getGatewayUrl } from './env';
+import type { SupportedLocale } from '../i18n/config';
 
 // Re-export storage helpers so the rest of the app imports them from one place
 export { clearAuth } from './storage';
@@ -8,7 +9,7 @@ export { clearAuth } from './storage';
 export interface UserPreferences {
   theme: 'light' | 'dark';
   scheme: 'mint' | 'warm' | 'neon' | 'ember';
-  language: string;
+  language: SupportedLocale;
 }
 
 export interface User {

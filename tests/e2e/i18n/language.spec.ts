@@ -1,19 +1,22 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-test('saved French preference applies across the core app shell and pages', async ({ page }) => {
+async function saveLanguage(page: Page, language: 'en' | 'fr') {
   await page.goto('/settings');
   await page.waitForLoadState('networkidle');
 
-  const languageSelect = page.locator('select').last();
-  await languageSelect.selectOption('fr');
+  await page.locator('select').last().selectOption(language);
   await page
     .getByRole('button', {
       name: /Save preferences|Saving…|Saved|Enregistrer les préférences|Enregistrement…|Enregistré/,
     })
     .click();
 
-  await page.waitForTimeout(1200);
   await page.waitForLoadState('networkidle');
+  await expect(page.locator('select').last()).toHaveValue(language);
+}
+
+test('saved French preference applies across the core app shell and pages', async ({ page }) => {
+  await saveLanguage(page, 'fr');
 
   await expect(page.getByText('Aperçu')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Paramètres');
@@ -27,4 +30,19 @@ test('saved French preference applies across the core app shell and pages', asyn
 
   await page.goto('/dashboards', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tableaux de bord');
+});
+
+test('language preference can switch back to English after French is saved', async ({ page }) => {
+  await saveLanguage(page, 'fr');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Paramètres');
+
+  await saveLanguage(page, 'en');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Settings');
+  await expect(page.getByRole('link', { name: /Overview/ })).toBeVisible();
+
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Welcome back, dev');
+
+  await page.goto('/datasets', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Datasets');
 });
