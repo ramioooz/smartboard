@@ -1,13 +1,24 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, SUPPORTED_LOCALES, normalizeLocale, type SupportedLocale } from './config';
+import {
+  DEFAULT_LOCALE,
+  LOCALE_STORAGE_KEY,
+  SUPPORTED_LOCALES,
+  getLocaleDirection,
+  normalizeLocale,
+  type SupportedLocale,
+} from './config';
+import ar from './messages/ar';
 import en from './messages/en';
 import fr from './messages/fr';
 
-type Messages = Record<string, unknown>;
+type MessageTree<T> = {
+  readonly [K in keyof T]: T[K] extends string ? string : MessageTree<T[K]>;
+};
+type Messages = MessageTree<typeof en>;
 
-const dictionaries: Record<SupportedLocale, Messages> = { en, fr };
+const dictionaries: Record<SupportedLocale, Messages> = { en, fr, ar };
 
 type Primitive = string | number;
 
@@ -34,7 +45,13 @@ function interpolate(template: string, vars?: Record<string, Primitive>) {
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token: string) => String(vars[token] ?? ''));
 }
 
-export function LocaleProvider({ children, initialLocale = DEFAULT_LOCALE }: { children: React.ReactNode; initialLocale?: SupportedLocale }) {
+export function LocaleProvider({
+  children,
+  initialLocale = DEFAULT_LOCALE,
+}: {
+  children: React.ReactNode;
+  initialLocale?: SupportedLocale;
+}) {
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
 
   useEffect(() => {
@@ -48,6 +65,7 @@ export function LocaleProvider({ children, initialLocale = DEFAULT_LOCALE }: { c
 
   useEffect(() => {
     document.documentElement.lang = locale;
+    document.documentElement.dir = getLocaleDirection(locale);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   }, [locale]);
 
@@ -55,35 +73,50 @@ export function LocaleProvider({ children, initialLocale = DEFAULT_LOCALE }: { c
     setLocaleState(normalizeLocale(next));
   }, []);
 
-  const t = useCallback((key: string, vars?: Record<string, Primitive>) => {
-    const active = dictionaries[locale];
-    const raw = getMessage(active, key) ?? getMessage(dictionaries.en, key);
-    if (typeof raw !== 'string') {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(`Missing translation key: ${key}`);
+  const t = useCallback(
+    (key: string, vars?: Record<string, Primitive>) => {
+      const active = dictionaries[locale];
+      const raw = getMessage(active, key) ?? getMessage(dictionaries.en, key);
+      if (typeof raw !== 'string') {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(`Missing translation key: ${key}`);
+        }
+        return key;
       }
-      return key;
-    }
-    return interpolate(raw, vars);
-  }, [locale]);
+      return interpolate(raw, vars);
+    },
+    [locale],
+  );
 
-  const formatDate = useCallback((value: string | number | Date, options?: Intl.DateTimeFormatOptions) => {
-    return new Intl.DateTimeFormat(locale, options).format(new Date(value));
-  }, [locale]);
+  const formatDate = useCallback(
+    (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => {
+      return new Intl.DateTimeFormat(locale, options).format(new Date(value));
+    },
+    [locale],
+  );
 
-  const formatDateTime = useCallback((value: string | number | Date, options?: Intl.DateTimeFormatOptions) => {
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      ...options,
-    }).format(new Date(value));
-  }, [locale]);
+  const formatDateTime = useCallback(
+    (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => {
+      return new Intl.DateTimeFormat(locale, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        ...options,
+      }).format(new Date(value));
+    },
+    [locale],
+  );
 
-  const formatNumber = useCallback((value: number, options?: Intl.NumberFormatOptions) => {
-    return new Intl.NumberFormat(locale, options).format(value);
-  }, [locale]);
+  const formatNumber = useCallback(
+    (value: number, options?: Intl.NumberFormatOptions) => {
+      return new Intl.NumberFormat(locale, options).format(value);
+    },
+    [locale],
+  );
 
-  const contextValue = useMemo(() => ({ locale, setLocale, t, formatDate, formatDateTime, formatNumber }), [locale, setLocale, t, formatDate, formatDateTime, formatNumber]);
+  const contextValue = useMemo(
+    () => ({ locale, setLocale, t, formatDate, formatDateTime, formatNumber }),
+    [locale, setLocale, t, formatDate, formatDateTime, formatNumber],
+  );
 
   return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
