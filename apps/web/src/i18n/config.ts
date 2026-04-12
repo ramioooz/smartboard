@@ -2,7 +2,8 @@ export const SUPPORTED_LOCALES = ['en', 'fr', 'ar'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
-export const LOCALE_STORAGE_KEY = 'sb-language';
+export const LOCALE_COOKIE = 'sb-language';
+export const LOCALE_STORAGE_KEY = LOCALE_COOKIE;
 
 export const LANGUAGE_OPTIONS: Array<{ value: SupportedLocale; label: string }> = [
   { value: 'en', label: 'English' },

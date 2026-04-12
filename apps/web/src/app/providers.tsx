@@ -4,14 +4,19 @@ import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import type { UserPreferences } from '../lib/auth';
+import { DEFAULT_LOCALE, type SupportedLocale } from '../i18n/config';
 import { LocaleProvider } from '../i18n/provider';
 
 export function Providers({
   children,
   initialTheme,
+  initialLocale = DEFAULT_LOCALE,
+  hasInitialLocaleCookie = false,
 }: {
   children: React.ReactNode;
   initialTheme: UserPreferences['theme'];
+  initialLocale?: SupportedLocale;
+  hasInitialLocaleCookie?: boolean;
 }) {
   useEffect(() => {
     if (window.location.hostname !== 'localhost') {
@@ -34,7 +39,7 @@ export function Providers({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LocaleProvider>
+      <LocaleProvider initialLocale={initialLocale} hasInitialLocaleCookie={hasInitialLocaleCookie}>
         <ThemeProvider
           attribute="data-theme"
           defaultTheme={initialTheme}

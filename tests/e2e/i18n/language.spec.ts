@@ -13,6 +13,21 @@ async function saveLanguage(page: Page, language: 'en' | 'fr' | 'ar') {
 
   await page.waitForLoadState('networkidle');
   await expect(page.locator('select').last()).toHaveValue(language);
+  await expect(page.locator('html')).toHaveAttribute('lang', language);
+}
+
+async function getLanguageCookie(page: Page) {
+  return (await page.context().cookies('http://127.0.0.1:3000')).find(
+    (cookie) => cookie.name === 'sb-language',
+  );
+}
+
+async function expectLanguageCookie(page: Page, language: 'en' | 'fr' | 'ar') {
+  await expect
+    .poll(async () => (await getLanguageCookie(page))?.value, {
+      message: `language cookie should be ${language}`,
+    })
+    .toBe(language);
 }
 
 test('saved French preference applies across the core app shell and pages', async ({ page }) => {
@@ -52,10 +67,17 @@ test('language preference can switch back to English after French is saved', asy
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('الإعدادات');
   await expect(page.getByRole('link', { name: /نظرة عامة/ })).toBeVisible();
+  await expectLanguageCookie(page, 'ar');
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('الإعدادات');
 
   await page.goto('/', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('مرحباً بعودتك، dev');
 
   await saveLanguage(page, 'en');
+  await expectLanguageCookie(page, 'en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });

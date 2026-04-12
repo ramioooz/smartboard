@@ -10,7 +10,11 @@ export function LocaleSync() {
   const { locale, setLocale } = useLocale();
 
   useEffect(() => {
-    const nextLocale = normalizeLocale(user?.preferences?.language);
+    if (!user?.preferences?.language) {
+      return;
+    }
+
+    const nextLocale = normalizeLocale(user.preferences.language);
     if (nextLocale !== locale) {
       setLocale(nextLocale);
     }

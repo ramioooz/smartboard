@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   DEFAULT_LOCALE,
+  LOCALE_COOKIE,
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   getLocaleDirection,
@@ -32,6 +33,7 @@ type LocaleContextValue = {
 };
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
+const LOCALE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 function getMessage(messages: Messages, key: string): unknown {
   return key.split('.').reduce<unknown>((current, part) => {
@@ -45,28 +47,41 @@ function interpolate(template: string, vars?: Record<string, Primitive>) {
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token: string) => String(vars[token] ?? ''));
 }
 
+function writeLocaleCookie(locale: SupportedLocale) {
+  document.cookie = `${LOCALE_COOKIE}=${encodeURIComponent(
+    locale,
+  )}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+}
+
 export function LocaleProvider({
   children,
   initialLocale = DEFAULT_LOCALE,
+  hasInitialLocaleCookie = false,
 }: {
   children: React.ReactNode;
   initialLocale?: SupportedLocale;
+  hasInitialLocaleCookie?: boolean;
 }) {
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
 
   useEffect(() => {
+    if (hasInitialLocaleCookie) {
+      return;
+    }
+
     const cached = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     const browser = window.navigator.language;
     const next = normalizeLocale(cached || browser);
     if (SUPPORTED_LOCALES.includes(next) && next !== locale) {
       setLocaleState(next);
     }
-  }, []);
+  }, [hasInitialLocaleCookie, locale]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = getLocaleDirection(locale);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    writeLocaleCookie(locale);
   }, [locale]);
 
   const setLocale = useCallback((next: SupportedLocale) => {

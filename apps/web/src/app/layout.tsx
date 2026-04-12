@@ -10,6 +10,7 @@ import {
   normalizeScheme,
   normalizeTheme,
 } from '../lib/appearance';
+import { DEFAULT_LOCALE, LOCALE_COOKIE, getLocaleDirection, normalizeLocale } from '../i18n/config';
 
 export const metadata: Metadata = {
   title: 'Smartboard',
@@ -20,16 +21,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookieStore = await cookies();
   const initialTheme = normalizeTheme(cookieStore.get(THEME_COOKIE)?.value ?? DEFAULT_THEME);
   const initialScheme = normalizeScheme(cookieStore.get(SCHEME_COOKIE)?.value ?? DEFAULT_SCHEME);
+  const rawLocale = cookieStore.get(LOCALE_COOKIE)?.value;
+  const initialLocale = normalizeLocale(rawLocale ?? DEFAULT_LOCALE);
+  const initialDirection = getLocaleDirection(initialLocale);
 
   return (
     <html
-      lang="en"
+      lang={initialLocale}
+      dir={initialDirection}
       suppressHydrationWarning
       data-theme={initialTheme}
       data-scheme={initialScheme}
     >
       <body>
-        <Providers initialTheme={initialTheme}>{children}</Providers>
+        <Providers
+          initialTheme={initialTheme}
+          initialLocale={initialLocale}
+          hasInitialLocaleCookie={Boolean(rawLocale)}
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );
