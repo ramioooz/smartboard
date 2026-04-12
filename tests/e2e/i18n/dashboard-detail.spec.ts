@@ -8,17 +8,20 @@ test('French preference applies to datasets and dashboard builder details', asyn
   await languageSelect.selectOption('fr');
   await page
     .getByRole('button', {
-      name: /Save preferences|Saving…|Saved|Enregistrer les préférences|Enregistrement…|Enregistré/,
+      name: /Save preferences|Saving…|Saved|Enregistrer les préférences|Enregistrement…|Enregistré|حفظ التفضيلات|جار الحفظ…|تم الحفظ/,
     })
     .click();
 
   await page.waitForTimeout(1200);
   await page.waitForLoadState('networkidle');
+  await expect(languageSelect).toHaveValue('fr');
 
   await page.goto('/datasets', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jeux de données');
   await page.getByRole('button', { name: /Téléverser un jeu de données/i }).click();
-  await expect(page.getByRole('heading', { level: 2, name: 'Téléverser un jeu de données' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Téléverser un jeu de données' }),
+  ).toBeVisible();
   await expect(page.getByText('Type de fichier')).toBeVisible();
   await page.getByRole('button', { name: 'Annuler' }).click();
 

@@ -20,7 +20,9 @@ export default function SettingsPage() {
     scheme: UserPreferences['scheme'];
   }>({ theme: stored?.theme ?? 'light', scheme: stored?.scheme ?? 'mint' });
 
-  const [language, setLanguage] = useState<SupportedLocale>(normalizeLocale(stored?.language ?? locale));
+  const [language, setLanguage] = useState<SupportedLocale>(
+    normalizeLocale(stored?.language ?? locale),
+  );
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Sync local state when user loads
@@ -30,11 +32,14 @@ export default function SettingsPage() {
         theme: stored.theme ?? 'light',
         scheme: stored.scheme ?? 'mint',
       });
-      setLanguage(normalizeLocale(stored.language ?? locale));
+      setLanguage((current) => normalizeLocale(stored.language ?? current));
     }
-  }, [locale, stored?.theme, stored?.scheme, stored?.language]);
+  }, [stored?.theme, stored?.scheme, stored?.language]);
 
-  function handleThemeChange(value: { theme: UserPreferences['theme']; scheme: UserPreferences['scheme'] }) {
+  function handleThemeChange(value: {
+    theme: UserPreferences['theme'];
+    scheme: UserPreferences['scheme'];
+  }) {
     setThemeScheme(value);
   }
 
@@ -65,7 +70,9 @@ export default function SettingsPage() {
       {/* Appearance */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.appearanceTitle')}</h2>
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            {t('settings.appearanceTitle')}
+          </h2>
           <p className="text-sm text-[var(--muted)]">{t('settings.appearanceSubtitle')}</p>
         </CardHeader>
         <CardContent>
@@ -76,13 +83,17 @@ export default function SettingsPage() {
       {/* Language */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.languageTitle')}</h2>
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            {t('settings.languageTitle')}
+          </h2>
           <p className="text-sm text-[var(--muted)]">{t('settings.languageSubtitle')}</p>
         </CardHeader>
         <CardContent>
           <select
             value={language}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLanguage(normalizeLocale(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setLanguage(normalizeLocale(e.target.value))
+            }
             className="w-full rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
           >
             {LANGUAGE_OPTIONS.map((lang) => (
@@ -97,7 +108,9 @@ export default function SettingsPage() {
       {/* Account */}
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-[var(--text)]">{t('settings.accountTitle')}</h2>
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            {t('settings.accountTitle')}
+          </h2>
           <p className="text-sm text-[var(--muted)]">{t('settings.accountSubtitle')}</p>
         </CardHeader>
         <CardContent>
