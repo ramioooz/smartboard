@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, Button } from '@smartboard/ui';
 import { ThemePicker } from '../../../components/settings/theme-picker';
 import { useUser, useUpdatePreferences } from '../../../hooks/useUser';
 import type { UserPreferences } from '../../../lib/auth';
-import { LANGUAGE_OPTIONS, normalizeLocale } from '../../../i18n/config';
+import { LANGUAGE_OPTIONS, normalizeLocale, type SupportedLocale } from '../../../i18n/config';
 import { useLocale } from '../../../i18n/use-t';
 
 export default function SettingsPage() {
@@ -20,7 +20,7 @@ export default function SettingsPage() {
     scheme: UserPreferences['scheme'];
   }>({ theme: stored?.theme ?? 'light', scheme: stored?.scheme ?? 'mint' });
 
-  const [language, setLanguage] = useState<string>(stored?.language ?? locale);
+  const [language, setLanguage] = useState<SupportedLocale>(normalizeLocale(stored?.language ?? locale));
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Sync local state when user loads
@@ -30,7 +30,7 @@ export default function SettingsPage() {
         theme: stored.theme ?? 'light',
         scheme: stored.scheme ?? 'mint',
       });
-      setLanguage(stored.language ?? locale);
+      setLanguage(normalizeLocale(stored.language ?? locale));
     }
   }, [locale, stored?.theme, stored?.scheme, stored?.language]);
 
@@ -82,7 +82,7 @@ export default function SettingsPage() {
         <CardContent>
           <select
             value={language}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLanguage(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLanguage(normalizeLocale(e.target.value))}
             className="w-full rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
           >
             {LANGUAGE_OPTIONS.map((lang) => (

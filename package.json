@@ -18,7 +18,7 @@
     "test:e2e:auth": "playwright test tests/e2e/auth",
     "test:e2e:auth-api": "playwright test tests/e2e/auth/auth-api.spec.ts",
     "test:e2e:datasets": "playwright test tests/e2e/datasets",
-    "test:e2e:i18n": "playwright test tests/e2e/i18n",
+    "test:e2e:i18n": "playwright test tests/e2e/i18n --workers=1",
     "clean": "turbo run clean && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "db:migrate": "turbo run db:migrate",
     "db:generate": "turbo run db:generate",
