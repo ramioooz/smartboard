@@ -6,4 +6,5 @@ module.exports = {
   ...base,
   rootDir: '.',
   testEnvironment: 'node',
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
 };

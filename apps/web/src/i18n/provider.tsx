@@ -29,6 +29,7 @@ type LocaleContextValue = {
   t: (key: string, vars?: Record<string, Primitive>) => string;
   formatDate: (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => string;
   formatDateTime: (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatTime: (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
 };
 
@@ -121,6 +122,19 @@ export function LocaleProvider({
     [locale],
   );
 
+  const formatTime = useCallback(
+    (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => {
+      return new Intl.DateTimeFormat(
+        locale,
+        options ?? {
+          hour: 'numeric',
+          minute: '2-digit',
+        },
+      ).format(new Date(value));
+    },
+    [locale],
+  );
+
   const formatNumber = useCallback(
     (value: number, options?: Intl.NumberFormatOptions) => {
       return new Intl.NumberFormat(locale, options).format(value);
@@ -129,8 +143,8 @@ export function LocaleProvider({
   );
 
   const contextValue = useMemo(
-    () => ({ locale, setLocale, t, formatDate, formatDateTime, formatNumber }),
-    [locale, setLocale, t, formatDate, formatDateTime, formatNumber],
+    () => ({ locale, setLocale, t, formatDate, formatDateTime, formatTime, formatNumber }),
+    [locale, setLocale, t, formatDate, formatDateTime, formatTime, formatNumber],
   );
 
   return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
