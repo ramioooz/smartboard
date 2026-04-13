@@ -81,3 +81,30 @@ test('language preference can switch back to English after French is saved', asy
   await expectLanguageCookie(page, 'en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
+
+test('Arabic preference keeps RTL direction across dataset and dashboard builder chrome', async ({
+  page,
+}) => {
+  await saveLanguage(page, 'ar');
+  await expectLanguageCookie(page, 'ar');
+
+  await page.goto('/datasets', { waitUntil: 'networkidle' });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('مجموعات البيانات');
+
+  await page.goto('/dashboards', { waitUntil: 'networkidle' });
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('لوحات المعلومات');
+
+  await page.getByRole('button', { name: /لوحة معلومات جديدة/ }).click();
+  await page.getByPlaceholder('لوحة معلوماتي').fill(`rtl_${Date.now()}`);
+  await page.getByRole('button', { name: 'إنشاء' }).click();
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('button', { name: /إضافة لوحة/ })).toBeVisible();
+
+  await saveLanguage(page, 'en');
+  await expectLanguageCookie(page, 'en');
+});

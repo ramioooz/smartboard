@@ -14,7 +14,16 @@ function EmptyState({ onNew }: { onNew: () => void }) {
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-16">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface2)]">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--muted)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="18" y1="20" x2="18" y2="10" />
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
@@ -43,7 +52,7 @@ function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: 
     <button
       type="button"
       onClick={onClick}
-      className="group w-full text-left rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)] transition-all duration-[var(--transition)] hover:border-[var(--primary)]/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+      className="group w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 text-start shadow-[var(--shadow)] transition-all duration-[var(--transition)] hover:border-[var(--primary)]/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -60,12 +69,20 @@ function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: 
           })}
         </Badge>
       </div>
-      <p className="mt-3 text-xs text-[var(--muted)]">{t('dashboards.updated', { date: updated })}</p>
+      <p className="mt-3 text-xs text-[var(--muted)]">
+        {t('dashboards.updated', { date: updated })}
+      </p>
     </button>
   );
 }
 
-function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+function CreateModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
   const { t } = useLocale();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -74,7 +91,10 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    const dashboard = await create.mutateAsync({ name: name.trim(), description: description.trim() || undefined });
+    const dashboard = await create.mutateAsync({
+      name: name.trim(),
+      description: description.trim() || undefined,
+    });
     onCreated(dashboard.id);
   }
 
@@ -84,7 +104,9 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
         <h2 className="text-lg font-semibold text-[var(--text)]">{t('dashboards.createTitle')}</h2>
         <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--text)]">{t('dashboards.createName')}</label>
+            <label className="block text-sm font-medium text-[var(--text)]">
+              {t('dashboards.createName')}
+            </label>
             <input
               autoFocus
               value={name}
@@ -94,17 +116,24 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--text)]">{t('dashboards.createDescription')} <span className="text-[var(--muted)]">{t('dashboards.optional')}</span></label>
+            <label className="block text-sm font-medium text-[var(--text)]">
+              {t('dashboards.createDescription')}{' '}
+              <span className="text-[var(--muted)]">{t('dashboards.optional')}</span>
+            </label>
             <textarea
               value={description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setDescription(e.target.value)
+              }
               placeholder={t('dashboards.createDescriptionPlaceholder')}
               rows={2}
               className="mt-1 w-full resize-none rounded-[calc(var(--radius)-4px)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
             />
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+            <Button type="button" variant="ghost" onClick={onClose}>
+              {t('common.cancel')}
+            </Button>
             <Button type="submit" disabled={!name.trim() || create.isPending}>
               {create.isPending ? t('common.creating') : t('dashboards.createButton')}
             </Button>
@@ -135,7 +164,17 @@ export default function DashboardsPage() {
           <p className="mt-1 text-sm text-[var(--muted)]">{t('dashboards.subtitle')}</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
-          <svg className="mr-2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="me-2"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -147,7 +186,10 @@ export default function DashboardsPage() {
       {isLoading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="h-28 animate-pulse rounded-[var(--radius)] bg-[var(--surface2)]" />
+            <div
+              key={n}
+              className="h-28 animate-pulse rounded-[var(--radius)] bg-[var(--surface2)]"
+            />
           ))}
         </div>
       )}
@@ -177,12 +219,7 @@ export default function DashboardsPage() {
       )}
 
       {/* Create Modal */}
-      {showCreate && (
-        <CreateModal
-          onClose={() => setShowCreate(false)}
-          onCreated={handleCreated}
-        />
-      )}
+      {showCreate && <CreateModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />}
     </div>
   );
 }
