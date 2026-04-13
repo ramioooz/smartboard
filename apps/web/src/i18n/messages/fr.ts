@@ -109,6 +109,10 @@ const fr = {
     createDescriptionPlaceholder: 'À quoi sert ce tableau de bord ?',
     createButton: 'Créer',
     createFailed: 'Échec du chargement des tableaux de bord. La passerelle est-elle active ?',
+    deleteDashboard: 'Supprimer',
+    deleteDashboardLabel: 'Supprimer {{name}}',
+    deleteConfirm: 'Supprimer « {{name}} » ? Cette action est irréversible.',
+    deleteError: 'Erreur lors de la suppression du tableau de bord',
     builderBack: 'Tableaux de bord',
     unsavedChanges: 'Modifications non enregistrées',
     addPanel: 'Ajouter un panneau',
@@ -152,15 +156,18 @@ const fr = {
   },
   signedOut: {
     title: 'Vous êtes déconnecté',
-    subtitle: 'Démarrez une nouvelle session pour continuer à utiliser les tableaux de bord, les jeux de données et les paramètres.',
+    subtitle:
+      'Démarrez une nouvelle session pour continuer à utiliser les tableaux de bord, les jeux de données et les paramètres.',
   },
   tenant: {
     createFirstWorkspace: 'Créez votre premier espace de travail',
-    createFirstWorkspaceSubtitle: 'Smartboard a besoin d’un tenant avant de charger les jeux de données et les tableaux de bord.',
+    createFirstWorkspaceSubtitle:
+      'Smartboard a besoin d’un tenant avant de charger les jeux de données et les tableaux de bord.',
     workspaceName: 'Nom de l’espace de travail',
     createWorkspace: 'Créer l’espace de travail',
     chooseWorkspace: 'Choisissez un espace de travail',
-    chooseWorkspaceSubtitle: 'Sélectionnez l’espace de travail à utiliser pour les tableaux de bord, les jeux de données et les mises à jour en temps réel.',
+    chooseWorkspaceSubtitle:
+      'Sélectionnez l’espace de travail à utiliser pour les tableaux de bord, les jeux de données et les mises à jour en temps réel.',
   },
   theme: {
     lightMint: 'Clair · Menthe',

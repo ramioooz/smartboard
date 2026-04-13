@@ -24,7 +24,10 @@ export class DashboardsService {
     });
   }
 
-  async listForTenant(tenantId: string, pagination: PaginationDto): Promise<PagedResult<Dashboard>> {
+  async listForTenant(
+    tenantId: string,
+    pagination: PaginationDto,
+  ): Promise<PagedResult<Dashboard>> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -68,5 +71,12 @@ export class DashboardsService {
         ...(dto.description !== undefined && { description: dto.description }),
       },
     });
+  }
+
+  async delete(id: string, tenantId: string): Promise<void> {
+    const existing = await this.prisma.dashboard.findFirst({ where: { id, tenantId } });
+    if (!existing) throw new NotFoundException(`Dashboard ${id} not found`);
+
+    await this.prisma.dashboard.delete({ where: { id } });
   }
 }

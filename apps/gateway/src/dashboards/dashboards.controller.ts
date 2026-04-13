@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import type { ApiOk } from '@smartboard/shared';
 import { DashboardsService } from './dashboards.service';
 
@@ -22,18 +22,17 @@ export class DashboardsController {
   }
 
   @Put(':id/layout')
-  async saveLayout(
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ): Promise<ApiOk<unknown>> {
+  async saveLayout(@Param('id') id: string, @Body() body: unknown): Promise<ApiOk<unknown>> {
     return this.dashboardsService.put<ApiOk<unknown>>(`/dashboards/${id}/layout`, body);
   }
 
   @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ): Promise<ApiOk<unknown>> {
+  async update(@Param('id') id: string, @Body() body: unknown): Promise<ApiOk<unknown>> {
     return this.dashboardsService.patch<ApiOk<unknown>>(`/dashboards/${id}`, body);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string): Promise<ApiOk<unknown>> {
+    return this.dashboardsService.delete<ApiOk<unknown>>(`/dashboards/${id}`);
   }
 }

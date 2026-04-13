@@ -63,3 +63,10 @@ export async function saveLayout(id: string, panels: Panel[]): Promise<Dashboard
   });
   return res.data;
 }
+
+export async function deleteDashboard(id: string): Promise<void> {
+  await apiFetch<ApiOk<{ id: string }>>(`/api/dashboards/${id}`, {
+    ...ctx(),
+    method: 'DELETE',
+  });
+}

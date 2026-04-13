@@ -1,6 +1,31 @@
-import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import type { ApiOk, CreateDashboard, PatchDashboard, Pagination, PagedResult, SaveLayout } from '@smartboard/shared';
-import { CreateDashboardSchema, PatchDashboardSchema, PaginationSchema, SaveLayoutSchema } from '@smartboard/shared';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import type {
+  ApiOk,
+  CreateDashboard,
+  PatchDashboard,
+  Pagination,
+  PagedResult,
+  SaveLayout,
+} from '@smartboard/shared';
+import {
+  CreateDashboardSchema,
+  PatchDashboardSchema,
+  PaginationSchema,
+  SaveLayoutSchema,
+} from '@smartboard/shared';
 import { ZodValidationPipe } from '@smartboard/nest-common';
 import type { Dashboard } from '@prisma/client';
 import { DashboardsService } from './dashboards.service';
@@ -60,5 +85,16 @@ export class DashboardsController {
     if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
     const dashboard = await this.dashboardsService.update(id, tenantId, body);
     return { ok: true, data: dashboard };
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  async delete(
+    @Param('id') id: string,
+    @Headers('x-tenant-id') tenantId: string,
+  ): Promise<ApiOk<{ id: string }>> {
+    if (!tenantId) throw new BadRequestException('Missing x-tenant-id header');
+    await this.dashboardsService.delete(id, tenantId);
+    return { ok: true, data: { id } };
   }
 }
