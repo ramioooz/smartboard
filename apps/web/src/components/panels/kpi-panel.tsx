@@ -56,7 +56,7 @@ export function KpiPanel({ config, onSelectDataset }: KpiPanelProps) {
     <div className="flex h-full flex-col items-center justify-center gap-1">
       <p className="text-4xl font-bold tabular-nums text-[var(--primary)]">
         {isLoading ? '…' : value}
-        {unit && <span className="ml-1 text-xl font-normal text-[var(--muted)]">{unit}</span>}
+        {unit && <span className="ms-1 text-xl font-normal text-[var(--muted)]">{unit}</span>}
       </p>
       <p className="text-sm font-medium text-[var(--muted)]">{label}</p>
       {!datasetId && (

@@ -74,15 +74,17 @@ function OnboardingState({
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <h1 className="text-lg font-semibold text-[var(--text)]">{t('tenant.createFirstWorkspace')}</h1>
-          <p className="text-sm text-[var(--muted)]">
-            {t('tenant.createFirstWorkspaceSubtitle')}
-          </p>
+          <h1 className="text-lg font-semibold text-[var(--text)]">
+            {t('tenant.createFirstWorkspace')}
+          </h1>
+          <p className="text-sm text-[var(--muted)]">{t('tenant.createFirstWorkspaceSubtitle')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text)]">{t('tenant.workspaceName')}</label>
+              <label className="block text-sm font-medium text-[var(--text)]">
+                {t('tenant.workspaceName')}
+              </label>
               <input
                 autoFocus
                 value={name}
@@ -116,10 +118,10 @@ function SelectionState({
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <h1 className="text-lg font-semibold text-[var(--text)]">{t('tenant.chooseWorkspace')}</h1>
-          <p className="text-sm text-[var(--muted)]">
-            {t('tenant.chooseWorkspaceSubtitle')}
-          </p>
+          <h1 className="text-lg font-semibold text-[var(--text)]">
+            {t('tenant.chooseWorkspace')}
+          </h1>
+          <p className="text-sm text-[var(--muted)]">{t('tenant.chooseWorkspaceSubtitle')}</p>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           {tenants.map((tenant) => (
@@ -127,7 +129,7 @@ function SelectionState({
               key={tenant.id}
               type="button"
               onClick={() => onSelect(tenant.id)}
-              className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-colors hover:border-[var(--primary)] hover:bg-[var(--surface2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+              className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-start transition-colors hover:border-[var(--primary)] hover:bg-[var(--surface2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
             >
               <p className="font-medium text-[var(--text)]">{tenant.name}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">{tenant.slug}</p>
@@ -151,7 +153,9 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
   const qc = useQueryClient();
   const { data: user, isLoading: isUserLoading, isError: isUserError } = useUser();
-  const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>('loading');
+  const [selectionState, setSelectionState] = useState<'loading' | 'ready' | 'needs-selection'>(
+    'loading',
+  );
   const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -258,7 +262,11 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
     return (
       <OnboardingState
         isPending={createTenantMutation.isPending}
-        error={createTenantMutation.error instanceof Error ? createTenantMutation.error.message : undefined}
+        error={
+          createTenantMutation.error instanceof Error
+            ? createTenantMutation.error.message
+            : undefined
+        }
         onCreate={async (name) => {
           await createTenantMutation.mutateAsync({
             name,

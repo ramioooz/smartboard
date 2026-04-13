@@ -43,12 +43,7 @@ const BREAKPOINT_COLS = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 } as const;
 type BreakpointName = keyof typeof BREAKPOINT_COLS;
 
 function collides(a: Layout, b: Layout) {
-  return !(
-    a.x + a.w <= b.x ||
-    b.x + b.w <= a.x ||
-    a.y + a.h <= b.y ||
-    b.y + b.h <= a.y
-  );
+  return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
 }
 
 function findNextPanelLayout(panels: Panel[]): Layout {
@@ -138,18 +133,16 @@ function deriveResponsiveLayout(
   return layout;
 }
 
-function PanelContent({
-  panel,
-  onSelectDataset,
-}: {
-  panel: Panel;
-  onSelectDataset?: () => void;
-}) {
+function PanelContent({ panel, onSelectDataset }: { panel: Panel; onSelectDataset?: () => void }) {
   switch (panel.type) {
-    case 'kpi': return <KpiPanel config={panel.config} onSelectDataset={onSelectDataset} />;
-    case 'timeseries': return <TimeseriesPanel config={panel.config} onSelectDataset={onSelectDataset} />;
-    case 'table': return <TablePanel config={panel.config} onSelectDataset={onSelectDataset} />;
-    case 'text': return <TextPanel config={panel.config} />;
+    case 'kpi':
+      return <KpiPanel config={panel.config} onSelectDataset={onSelectDataset} />;
+    case 'timeseries':
+      return <TimeseriesPanel config={panel.config} onSelectDataset={onSelectDataset} />;
+    case 'table':
+      return <TablePanel config={panel.config} onSelectDataset={onSelectDataset} />;
+    case 'text':
+      return <TextPanel config={panel.config} />;
   }
 }
 
@@ -189,6 +182,24 @@ function inferMetricUnit(metric: string) {
 
 const DEFAULT_KPI_LABEL = textValue(DEFAULT_CONFIG.kpi['label'], 'Metric');
 
+function BackIcon() {
+  return (
+    <svg
+      className="shrink-0 rtl:rotate-180"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
 function PanelSettingsModal({
   panel,
   datasets,
@@ -202,7 +213,9 @@ function PanelSettingsModal({
 }) {
   const { t } = useLocale();
   const [title, setTitle] = useState(panel.title);
-  const [datasetId, setDatasetId] = useState(panel.datasetId ?? textValue(panel.config['datasetId']));
+  const [datasetId, setDatasetId] = useState(
+    panel.datasetId ?? textValue(panel.config['datasetId']),
+  );
   const [metric, setMetric] = useState(textValue(panel.config['metric'], 'value'));
   const [bucket, setBucket] = useState(textValue(panel.config['bucket'], 'hour'));
   const [label, setLabel] = useState(textValue(panel.config['label'], panel.title));
@@ -313,10 +326,14 @@ function PanelSettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">{t('dashboards.editPanel')}</h2>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">
+          {t('dashboards.editPanel')}
+        </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelTitle')}</label>
+            <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+              {t('dashboards.panelTitle')}
+            </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -327,7 +344,9 @@ function PanelSettingsModal({
           {panel.type !== 'text' && (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelDataset')}</label>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                  {t('dashboards.panelDataset')}
+                </label>
                 <select
                   value={datasetId}
                   onChange={(e) => {
@@ -350,14 +369,20 @@ function PanelSettingsModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelMetric')}</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                    {t('dashboards.panelMetric')}
+                  </label>
                   <select
                     value={metric}
                     onChange={(e) => applyMetricSelection(e.target.value)}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                     disabled={!datasetId}
                   >
-                    <option value="">{datasetId ? t('dashboards.panelSelectMetric') : t('dashboards.panelSelectDatasetFirst')}</option>
+                    <option value="">
+                      {datasetId
+                        ? t('dashboards.panelSelectMetric')
+                        : t('dashboards.panelSelectDatasetFirst')}
+                    </option>
                     {metricOptions.map((metricName) => (
                       <option key={metricName} value={metricName}>
                         {metricName}
@@ -366,7 +391,9 @@ function PanelSettingsModal({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelBucket')}</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                    {t('dashboards.panelBucket')}
+                  </label>
                   <select
                     value={bucket}
                     onChange={(e) => setBucket(e.target.value)}
@@ -387,7 +414,9 @@ function PanelSettingsModal({
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelLabel')}</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                    {t('dashboards.panelLabel')}
+                  </label>
                   <input
                     value={label}
                     onChange={(e) => {
@@ -398,7 +427,9 @@ function PanelSettingsModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelUnit')}</label>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                    {t('dashboards.panelUnit')}
+                  </label>
                   <input
                     value={unit}
                     onChange={(e) => {
@@ -410,7 +441,9 @@ function PanelSettingsModal({
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelAggregation')}</label>
+                <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                  {t('dashboards.panelAggregation')}
+                </label>
                 <select
                   value={aggregation}
                   onChange={(e) => setAggregation(e.target.value)}
@@ -428,7 +461,9 @@ function PanelSettingsModal({
 
           {panel.type === 'text' && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--text)]">{t('dashboards.panelContent')}</label>
+              <label className="mb-1 block text-sm font-medium text-[var(--text)]">
+                {t('dashboards.panelContent')}
+              </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -443,9 +478,7 @@ function PanelSettingsModal({
             <Button type="button" variant="ghost" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit">
-              {t('common.apply')}
-            </Button>
+            <Button type="submit">{t('common.apply')}</Button>
           </div>
         </form>
       </div>
@@ -472,7 +505,7 @@ export default function DashboardBuilderPage() {
   const datasets = datasetsData?.items ?? [];
 
   // Use server panels on first load, local state after any edit
-  const activePanels: Panel[] = panels ?? (dashboard?.panels ?? []);
+  const activePanels: Panel[] = panels ?? dashboard?.panels ?? [];
 
   // Sync panels from server on initial load
   if (panels === null && dashboard && dashboard.panels.length > 0 && panels === null) {
@@ -563,7 +596,10 @@ export default function DashboardBuilderPage() {
     return (
       <div className="-m-6 flex h-full flex-col items-center justify-center gap-4">
         <p className="text-sm text-red-500">{t('dashboards.dashboardMissing')}</p>
-        <Button variant="ghost" onClick={() => router.push('/dashboards')}>← {t('dashboards.backToDashboards')}</Button>
+        <Button variant="ghost" className="gap-1.5" onClick={() => router.push('/dashboards')}>
+          <BackIcon />
+          {t('dashboards.backToDashboards')}
+        </Button>
       </div>
     );
   }
@@ -575,11 +611,9 @@ export default function DashboardBuilderPage() {
         <button
           type="button"
           onClick={() => router.push('/dashboards')}
-          className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+          className="flex items-center gap-1.5 text-sm text-[var(--muted)] transition-colors hover:text-[var(--text)]"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          <BackIcon />
           {t('dashboards.builderBack')}
         </button>
 
@@ -588,25 +622,35 @@ export default function DashboardBuilderPage() {
 
         {dirty && <Badge variant="warning">{t('dashboards.unsavedChanges')}</Badge>}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2">
           {/* Add Panel dropdown */}
           <div className="relative">
             <Button variant="outline" size="sm" onClick={() => setShowAddMenu((v) => !v)}>
               {t('dashboards.addPanel')}
-              <svg className="ml-1.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="ms-1.5"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </Button>
             {showAddMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
-                <div className="absolute right-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-[calc(var(--radius)-2px)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]">
+                <div className="absolute end-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-[calc(var(--radius)-2px)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]">
                   {PANEL_TYPES.map((pt) => (
                     <button
                       key={pt.type}
                       type="button"
                       onClick={() => addPanel(pt.type)}
-                      className="w-full px-4 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--surface2)] transition-colors"
+                      className="w-full px-4 py-2 text-start text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface2)]"
                     >
                       {t(pt.labelKey)}
                     </button>
@@ -617,12 +661,20 @@ export default function DashboardBuilderPage() {
           </div>
 
           {/* Save button */}
-          <Button size="sm" onClick={() => void handleSave()} disabled={!dirty || saveStatus === 'saving'}>
+          <Button
+            size="sm"
+            onClick={() => void handleSave()}
+            disabled={!dirty || saveStatus === 'saving'}
+          >
             {saveStatus === 'saving' ? t('common.saving') : t('common.save')}
           </Button>
 
-          {saveStatus === 'saved' && <span className="text-xs text-[var(--primary)]">{t('common.saved')}</span>}
-          {saveStatus === 'error' && <span className="text-xs text-red-500">{t('dashboards.saveError')}</span>}
+          {saveStatus === 'saved' && (
+            <span className="text-xs text-[var(--primary)]">{t('common.saved')}</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="text-xs text-red-500">{t('dashboards.saveError')}</span>
+          )}
         </div>
       </div>
 

@@ -55,40 +55,46 @@ export function TablePanel({ config, onSelectDataset }: TablePanelProps) {
         </div>
       )}
       {datasetId && !isLoading && (
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-[var(--border)]">
-            {columns.map((col) => (
-              <th
-                key={col}
-                className="pb-1.5 pr-4 text-left font-semibold text-[var(--muted)] first:pl-0"
-              >
-                {col}
-              </th>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-[var(--border)]">
+              {columns.map((col) => (
+                <th
+                  key={col}
+                  className="pb-1.5 pe-4 text-start font-semibold text-[var(--muted)] first:ps-0"
+                >
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {(rows ?? []).map((row, ri) => (
+              <tr key={ri} className="border-b border-[var(--border)]/50 last:border-0">
+                <td className="py-1.5 pe-4 text-[var(--text)] first:ps-0">
+                  {formatDateTime(row.bucket)}
+                </td>
+                <td className="py-1.5 pe-4 text-[var(--text)]">
+                  {formatNumber(Math.round(row.avg))}
+                </td>
+                <td className="py-1.5 pe-4 text-[var(--text)]">
+                  {formatNumber(Math.round(row.min))}
+                </td>
+                <td className="py-1.5 pe-4 text-[var(--text)]">
+                  {formatNumber(Math.round(row.max))}
+                </td>
+                <td className="py-1.5 pe-4 text-[var(--text)]">{formatNumber(row.count)}</td>
+              </tr>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {(rows ?? []).map((row, ri) => (
-            <tr key={ri} className="border-b border-[var(--border)]/50 last:border-0">
-              <td className="py-1.5 pr-4 text-[var(--text)] first:pl-0">
-                {formatDateTime(row.bucket)}
-              </td>
-              <td className="py-1.5 pr-4 text-[var(--text)]">{formatNumber(Math.round(row.avg))}</td>
-              <td className="py-1.5 pr-4 text-[var(--text)]">{formatNumber(Math.round(row.min))}</td>
-              <td className="py-1.5 pr-4 text-[var(--text)]">{formatNumber(Math.round(row.max))}</td>
-              <td className="py-1.5 pr-4 text-[var(--text)]">{formatNumber(row.count)}</td>
-            </tr>
-          ))}
-          {rows?.length === 0 && (
-            <tr>
-              <td colSpan={columns.length} className="py-4 text-center text-[var(--muted)]">
-                {t('panels.noRows')}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            {rows?.length === 0 && (
+              <tr>
+                <td colSpan={columns.length} className="py-4 text-center text-[var(--muted)]">
+                  {t('panels.noRows')}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       )}
     </div>
   );
