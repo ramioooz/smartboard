@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, Button, Badge } from '@smartboard/ui';
-import { useDashboards, useCreateDashboard } from '../../../hooks/useDashboards';
+import {
+  useCreateDashboard,
+  useDashboards,
+  useDeleteDashboard,
+} from '../../../hooks/useDashboards';
 import type { Dashboard } from '../../../lib/dashboards';
 import { useLocale } from '../../../i18n/use-t';
 
@@ -39,7 +43,17 @@ function EmptyState({ onNew }: { onNew: () => void }) {
   );
 }
 
-function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: () => void }) {
+function DashboardCard({
+  dashboard,
+  onClick,
+  onDelete,
+  isDeleting,
+}: {
+  dashboard: Dashboard;
+  onClick: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
   const { t, formatDate, formatNumber } = useLocale();
   const panelCount = Array.isArray(dashboard.panels) ? dashboard.panels.length : 0;
   const updated = formatDate(dashboard.updatedAt, {
@@ -49,13 +63,15 @@ function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: 
   });
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 text-start shadow-[var(--shadow)] transition-all duration-[var(--transition)] hover:border-[var(--primary)]/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <article className="group relative rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 text-start shadow-[var(--shadow)] transition-all duration-[var(--transition)] hover:border-[var(--primary)]/50 hover:shadow-lg">
+      <button
+        type="button"
+        onClick={onClick}
+        className="absolute inset-0 z-0 rounded-[var(--radius)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+        aria-label={dashboard.name}
+      />
+      <div className="pointer-events-none relative z-10 flex items-start justify-between gap-3">
+        <div className="min-w-0 pe-3">
           <p className="truncate font-semibold text-[var(--text)] group-hover:text-[var(--primary)]">
             {dashboard.name}
           </p>
@@ -69,10 +85,19 @@ function DashboardCard({ dashboard, onClick }: { dashboard: Dashboard; onClick: 
           })}
         </Badge>
       </div>
-      <p className="mt-3 text-xs text-[var(--muted)]">
-        {t('dashboards.updated', { date: updated })}
-      </p>
-    </button>
+      <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+        <p className="text-xs text-[var(--muted)]">{t('dashboards.updated', { date: updated })}</p>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={isDeleting}
+          aria-label={t('dashboards.deleteDashboardLabel', { name: dashboard.name })}
+          className="rounded-[calc(var(--radius)-6px)] px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:pointer-events-none disabled:opacity-50 dark:text-red-400"
+        >
+          {isDeleting ? t('common.deleting') : t('dashboards.deleteDashboard')}
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -149,10 +174,25 @@ export default function DashboardsPage() {
   const { t } = useLocale();
   const { data: dashboards, isLoading, error } = useDashboards();
   const [showCreate, setShowCreate] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deleteDashboard = useDeleteDashboard();
 
   function handleCreated(id: string) {
     setShowCreate(false);
     router.push(`/dashboards/${id}`);
+  }
+
+  async function handleDelete(dashboard: Dashboard) {
+    if (!window.confirm(t('dashboards.deleteConfirm', { name: dashboard.name }))) return;
+
+    setDeletingId(dashboard.id);
+    try {
+      await deleteDashboard.mutateAsync(dashboard.id);
+    } catch {
+      window.alert(t('dashboards.deleteError'));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -213,6 +253,8 @@ export default function DashboardsPage() {
               key={d.id}
               dashboard={d}
               onClick={() => router.push(`/dashboards/${d.id}`)}
+              onDelete={() => void handleDelete(d)}
+              isDeleting={deletingId === d.id}
             />
           ))}
         </div>

@@ -11,7 +11,7 @@ import { KpiPanel } from '../../../../components/panels/kpi-panel';
 import { TimeseriesPanel } from '../../../../components/panels/timeseries-panel';
 import { TablePanel } from '../../../../components/panels/table-panel';
 import { TextPanel } from '../../../../components/panels/text-panel';
-import { useDashboard, useSaveLayout } from '../../../../hooks/useDashboards';
+import { useDashboard, useDeleteDashboard, useSaveLayout } from '../../../../hooks/useDashboards';
 import { useDatasetMetrics, useDatasets } from '../../../../hooks/useDatasets';
 import { useLocale } from '../../../../i18n/use-t';
 import type { Panel } from '../../../../lib/dashboards';
@@ -492,8 +492,16 @@ export default function DashboardBuilderPage() {
   const router = useRouter();
   const id = params.id;
 
-  const { data: dashboard, isLoading, error } = useDashboard(id);
+  const [deleteStatus, setDeleteStatus] = useState<'idle' | 'deleting' | 'error'>('idle');
+  const {
+    data: dashboard,
+    isLoading,
+    error,
+  } = useDashboard(id, {
+    enabled: deleteStatus !== 'deleting',
+  });
   const saveLayout = useSaveLayout();
+  const deleteDashboard = useDeleteDashboard();
   const { data: datasetsData } = useDatasets();
 
   const [panels, setPanels] = useState<Panel[] | null>(null);
@@ -584,6 +592,21 @@ export default function DashboardBuilderPage() {
     }
   }
 
+  async function handleDeleteDashboard() {
+    if (!dashboard || !window.confirm(t('dashboards.deleteConfirm', { name: dashboard.name }))) {
+      return;
+    }
+
+    setDeleteStatus('deleting');
+    try {
+      await deleteDashboard.mutateAsync(dashboard.id);
+      router.push('/dashboards');
+    } catch {
+      setDeleteStatus('error');
+      setTimeout(() => setDeleteStatus('idle'), 3000);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="-m-6 flex h-full items-center justify-center">
@@ -623,6 +646,16 @@ export default function DashboardBuilderPage() {
         {dirty && <Badge variant="warning">{t('dashboards.unsavedChanges')}</Badge>}
 
         <div className="ms-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-red-500/40 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+            onClick={() => void handleDeleteDashboard()}
+            disabled={deleteStatus === 'deleting'}
+          >
+            {deleteStatus === 'deleting' ? t('common.deleting') : t('dashboards.deleteDashboard')}
+          </Button>
+
           {/* Add Panel dropdown */}
           <div className="relative">
             <Button variant="outline" size="sm" onClick={() => setShowAddMenu((v) => !v)}>
@@ -674,6 +707,9 @@ export default function DashboardBuilderPage() {
           )}
           {saveStatus === 'error' && (
             <span className="text-xs text-red-500">{t('dashboards.saveError')}</span>
+          )}
+          {deleteStatus === 'error' && (
+            <span className="text-xs text-red-500">{t('dashboards.deleteError')}</span>
           )}
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTenant } from '../components/layout/tenant-bootstrap';
 import {
   createDashboard,
+  deleteDashboard,
   getDashboard,
   listDashboards,
   saveLayout,
@@ -24,14 +25,14 @@ export function useDashboards() {
   });
 }
 
-export function useDashboard(id: string) {
+export function useDashboard(id: string, options: { enabled?: boolean } = {}) {
   const { currentTenant } = useTenant();
 
   return useQuery<Dashboard>({
     queryKey: ['dashboard', currentTenant.id, id],
     queryFn: () => getDashboard(id),
     staleTime: 30_000,
-    enabled: !!id && !!currentTenant.id,
+    enabled: (options.enabled ?? true) && !!id && !!currentTenant.id,
   });
 }
 
@@ -55,6 +56,25 @@ export function useSaveLayout() {
       qc.setQueryData(['dashboard', currentTenant.id, dashboard.id], dashboard);
       qc.setQueryData<Dashboard[] | undefined>(['dashboards', currentTenant.id], (existing) =>
         existing?.map((item) => (item.id === dashboard.id ? dashboard : item)),
+      );
+      void qc.invalidateQueries({ queryKey: ['dashboards', currentTenant.id] });
+    },
+  });
+}
+
+export function useDeleteDashboard() {
+  const qc = useQueryClient();
+  const { currentTenant } = useTenant();
+
+  return useMutation<void, Error, string>({
+    mutationFn: deleteDashboard,
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['dashboard', currentTenant.id, id] });
+    },
+    onSuccess: (_data, id) => {
+      qc.removeQueries({ queryKey: ['dashboard', currentTenant.id, id] });
+      qc.setQueryData<Dashboard[] | undefined>(['dashboards', currentTenant.id], (existing) =>
+        existing?.filter((item) => item.id !== id),
       );
       void qc.invalidateQueries({ queryKey: ['dashboards', currentTenant.id] });
     },

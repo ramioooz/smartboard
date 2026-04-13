@@ -109,6 +109,10 @@ const en = {
     createDescriptionPlaceholder: 'What is this dashboard for?',
     createButton: 'Create',
     createFailed: 'Failed to load dashboards. Is the gateway running?',
+    deleteDashboard: 'Delete',
+    deleteDashboardLabel: 'Delete {{name}}',
+    deleteConfirm: 'Delete "{{name}}"? This cannot be undone.',
+    deleteError: 'Error deleting dashboard',
     builderBack: 'Dashboards',
     unsavedChanges: 'Unsaved changes',
     addPanel: 'Add Panel',
@@ -156,11 +160,13 @@ const en = {
   },
   tenant: {
     createFirstWorkspace: 'Create your first workspace',
-    createFirstWorkspaceSubtitle: 'Smartboard needs a tenant before datasets and dashboards can load.',
+    createFirstWorkspaceSubtitle:
+      'Smartboard needs a tenant before datasets and dashboards can load.',
     workspaceName: 'Workspace name',
     createWorkspace: 'Create Workspace',
     chooseWorkspace: 'Choose a workspace',
-    chooseWorkspaceSubtitle: 'Select the workspace you want to use for dashboards, datasets, and realtime updates.',
+    chooseWorkspaceSubtitle:
+      'Select the workspace you want to use for dashboards, datasets, and realtime updates.',
   },
   theme: {
     lightMint: 'Light · Mint',
